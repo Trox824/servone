@@ -1,0 +1,71 @@
+name: Bug report
+description: Something in Servone does not work as it should
+labels: [bug, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please search [existing issues](https://github.com/Trox824/servone/issues) first.
+        Security problems go through private reporting instead, see [SECURITY.md](https://github.com/Trox824/servone/blob/develop/SECURITY.md).
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Tracker
+        - Chat
+        - Calendar
+        - Meetings
+        - Documents or Drive
+        - Approvals
+        - People
+        - Import
+        - MCP or API
+        - Desktop app
+        - Self-hosting or build
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where are you running Servone?
+      options:
+        - servone.app (hosted)
+        - Self-hosted
+        - Local development build
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open a Scrum project
+        2. Start a sprint
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened instead?
+      description: Screenshots and console errors help a lot.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and operating system
+      placeholder: Chrome 141 on macOS 26
+  - type: input
+    id: version
+    attributes:
+      label: Commit or version
+      description: For self-hosted and local builds.

@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+      - uses: actions/cache@v6
+        with:
+          path: common/temp
+          key: ${{ runner.os }}-rush-${{ hashFiles('common/config/rush/pnpm-lock.yaml') }}
+      - name: Install
+        run: node common/scripts/install-run-rush.js install
+      - name: Build Servone packages and their dependencies
+        run: >
+          node common/scripts/install-run-rush.js build
+          --to @servone/ui --to @servone/services
+      - name: Test Servone packages
+        run: |
+          for dir in packages/servone-ui packages/servone-approvals packages/servone-config \
+            packages/servone-forms packages/servone-import packages/servone-mail \
+            packages/servone-notify-rules services/servone; do
+            echo "::group::$dir"
+            (cd "$dir" && node "$GITHUB_WORKSPACE/common/scripts/install-run-rushx.js" test) || exit 1
+            echo "::endgroup::"
+          done
