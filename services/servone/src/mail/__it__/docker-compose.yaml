@@ -1,0 +1,9 @@
+services:
+  dovecot:
+    image: dovecot/dovecot:2.3.21
+    ports:
+      - "3143:143"
+    volumes:
+      - ./dovecot.conf:/etc/dovecot/dovecot.conf:ro
+    tmpfs:
+      - /srv/vmail:mode=1777
