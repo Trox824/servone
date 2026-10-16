@@ -1,0 +1,12 @@
+Servone
+Copyright (c) 2026 the Servone authors
+
+This repository is a modified version of the Huly Platform
+(https://github.com/hcengineering/platform), Copyright (c) Hardcore Engineering Inc.,
+last synced with upstream commit 698b287e6fc427205fb59846cb0ea1609bf99415.
+
+Both are distributed under the Eclipse Public License 2.0; see LICENSE.
+
+Servone's own code lives in packages/servone-*, services/servone, dev/servone-*,
+dev/railway and tests/servone. Changes inside upstream Huly files are listed
+in docs/upstream-edits.md.

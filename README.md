@@ -1,420 +1,137 @@
-# Huly Platform
+<div align="center">
 
-[![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/huly_io?style=for-the-badge)](https://x.com/huly_io)
-![GitHub License](https://img.shields.io/github/license/hcengineering/platform?style=for-the-badge)
+<a href="https://www.servone.app"><img src=".github/assets/logo.png" alt="Servone" width="96" height="96"></a>
 
-⭐️ Your star shines on us. Star us on GitHub!
+# Servone
 
-> [!IMPORTANT]
-> **This repository is frozen and is no longer actively maintained.**
->
-> Development continues in [Platform-Collective/platform](https://github.com/Platform-Collective/platform).
-> Please use the new repository for current source code, issues, and pull requests.
+**One workspace for a small team's daily work.**<br>
+Issues and sprints, chat, calendar and meetings, documents and files, approvals and forms, in one app, in English and Vietnamese.
 
-> [!IMPORTANT]
-> **Hosted Huly has shut down.**
->
-> The hosted Huly service has been discontinued because its hosting is no longer funded. The hosted platform is no longer available.
->
-> You can continue using Huly with a self-hosted setup or another hosted option. For backup and restoration instructions, see the [backup & restore guide](docs/guides/backup-restore.en.md).
->
-> Have questions or need help? Join the [Huly community](https://link.huly.io/slack) to discuss migration options and get support.
->
+[Website](https://www.servone.app) · [Documentation](https://www.servone.app/docs) · [Get started](https://www.servone.app/docs/get-started) · [FAQ](https://www.servone.app/docs/reference/faq)
+
+[![License: EPL-2.0](https://img.shields.io/badge/license-EPL--2.0-5e6ad2?style=for-the-badge)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-servone.app-5e6ad2?style=for-the-badge)](https://www.servone.app/docs)
+[![Fork of Huly](https://img.shields.io/badge/fork%20of-Huly%20Platform-e5533d?style=for-the-badge)](https://github.com/hcengineering/platform)
+
+<br>
+
+<img src=".github/assets/tracker.webp" alt="A Servone sprint board with a burndown chart and per-assignee progress" width="100%">
+
+</div>
 
 ## About
 
-The Huly Platform is a robust framework designed to accelerate the development of business applications, such as CRM systems.
-This repository includes several applications, such as Chat, Project Management, CRM, HRM, and ATS.
-Various teams are building products on top of the Platform, including [Huly](https://huly.io) and [TraceX](https://tracex.co).
+Small teams usually pay for a task tracker, a chat app, a calendar, a shared drive and an approval tool, then spend their day copying links between them. Servone puts them in one workspace that shares the same people, permissions, search and notifications, so a chat message becomes an issue, an issue links to a document, and a meeting lands on everyone's calendar without leaving the app.
 
-![Huly](https://repository-images.githubusercontent.com/392073243/6d27d5cc-38cd-4d88-affe-bb88b393180c)
+Servone is built on the [Huly Platform](https://github.com/hcengineering/platform) by Hardcore Engineering and adds its own interface, backend and apps on top. The hosted version runs at [www.servone.app](https://www.servone.app).
 
-## Self-Hosting
+## Inside the workspace
 
-If you're primarily interested in self-hosting Huly without the intention to modify or contribute to its development, please use [huly-selfhost](https://github.com/hcengineering/huly-selfhost).
-This project offers a convenient method to host Huly using `docker`, designed for ease of use and quick setup. Explore this option to effortlessly enjoy Huly on your own server.
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="https://www.servone.app/docs/chat"><img src=".github/assets/chat.webp" alt="Chat channels and threads"></a>
+      <h3><a href="https://www.servone.app/docs/chat">Chat</a></h3>
+      Channels, threads and direct messages, plus forwarding, reminders, your own sidebar sections and Slack-style shortcuts. Turn any message into an issue.
+    </td>
+    <td width="50%" valign="top">
+      <a href="https://www.servone.app/docs/approvals"><img src=".github/assets/approvals.webp" alt="An approval workflow with its requests"></a>
+      <h3><a href="https://www.servone.app/docs/approvals">Approvals and workflows</a></h3>
+      Hiring, purchasing, contracts, IT requests and onboarding, each with its own steps, approvers, intake form and SLA.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="https://www.servone.app/docs/calendar"><img src=".github/assets/calendar.webp" alt="The week view of the team calendar"></a>
+      <h3><a href="https://www.servone.app/docs/calendar">Calendar and meetings</a></h3>
+      One agenda for events, deadlines and leave, with room and resource booking. Meetings start from an event or a chat and keep their minutes.
+    </td>
+    <td width="50%" valign="top">
+      <a href="https://www.servone.app/docs/drive"><img src=".github/assets/drive.webp" alt="Shared folders in Drive"></a>
+      <h3><a href="https://www.servone.app/docs/drive">Documents and drive</a></h3>
+      Collaborative documents in teamspaces and a shared drive for files, all covered by the same search.
+    </td>
+  </tr>
+</table>
 
-## Activity
+## Features
 
-![Alt](https://repobeats.axiom.co/api/embed/c42c99e21691fa60ea61b5cdf11c2e0647621534.svg 'Repobeats analytics image')
+| | |
+| --- | --- |
+| **[Tracker](https://www.servone.app/docs/tracker)** | Classic and Scrum projects, sprints, backlog, epics, timeline, burndown and velocity reports, project insights, custom statuses and issue forms |
+| **[Chat](https://www.servone.app/docs/chat)** | Channels, threads and direct messages, with message forwarding, remind-me-later, custom sidebar sections, search filtered by person, place and file, Slack-style shortcuts and quick switcher, announcement channels, department channels that members join automatically, guest access, a message-to-issue action, and incoming and outgoing webhooks |
+| **[Calendar](https://www.servone.app/docs/calendar)** | A rebuilt calendar with day, 3-day, week, month and schedule views, colleagues' calendars side by side, calendar sharing, rooms and resources, leave requests, Google Calendar sync |
+| **[Meetings](https://www.servone.app/docs/meetings)** | Video calls started from an event or a chat, Meet now for a quick call, guests by link, live call status in the channel, and meeting notes |
+| **[Documents](https://www.servone.app/docs/documents) and [Drive](https://www.servone.app/docs/drive)** | Real-time collaborative documents and shared files, with Save to Drive for chat attachments |
+| **[Approvals](https://www.servone.app/docs/approvals)** | Department workflows with approval steps, intake forms, SLAs and templates |
+| **[People](https://www.servone.app/docs/people/directory)** | Employee directory, org chart, departments with their own channels, CSV import |
+| **[Import](https://www.servone.app/docs/admin/import)** | Tasks, documents and people from ClickUp, Jira, Linear, Asana, Trello, Monday, Notion, Confluence, Google Docs, Slack, Discord and Microsoft Teams |
+| **[AI clients](https://www.servone.app/docs/integrations/mcp)** | A built-in MCP server, so Claude, Cursor and other AI clients can read and update the workspace with your permissions |
+| **Search and inbox** | A command palette for search and quick actions, and an inbox that groups notifications and pending approvals |
+| **API** | An issues REST API, API tokens and signed outgoing webhooks |
 
-## API Client
+## Connect an AI client
 
-If you want to interact with Huly programmatically, check out our [API Client](https://github.com/hcengineering/huly.core/tree/main/packages/api-client) documentation. The API client provides a typed interface for all Huly operations and can be used to build integrations and custom applications.
+Servone runs an [MCP](https://modelcontextprotocol.io) server next to the app. Add it as a custom connector in Claude, Cursor or any MCP client, sign in with your Servone account, and the client can search the workspace, create and update issues, post messages and read calendars, limited to what your account is allowed to do. Setup steps are in the [MCP guide](https://www.servone.app/docs/integrations/mcp).
 
-You can find API usage examples in the [Huly examples](https://github.com/hcengineering/huly-examples) repository.
+## Run it locally
 
-## Changelog
-
-For detailed information about changes, improvements, and bug fixes in each version, see our [Changelog](./changelog.md).
-
-## Versions
-
-The Huly Platform uses two types of version tags to distinguish between production-ready and development releases:
-
-- **Production Versions (`v*`)** - Stable releases for end users
-  - Example: `v0.7.310`, `v0.7.307`, `v0.6.501`
-  - These versions are recommended for production deployments
-  - Suitable for self-hosted installations
-  - Published with release notes on [GitHub Releases](https://github.com/hcengineering/platform/releases)
-
-- **Development Versions (`s*`)** - Pre-release builds for developers
-  - Example: `s0.7.313`, `s0.7.292`, `s0.7.288`
-  - Used for development and testing purposes
-  - May contain experimental features or bug fixes
-  - Not recommended for production use
-
-## Architecture
-
-For detailed information about the platform architecture, services, and their interactions, see our [Architecture Overview](./ARCHITECTURE_OVERVIEW.md).
-
-## Table of Contents
-
-- [Huly Platform](#huly-platform)
-  - [About](#about)
-  - [Self-Hosting](#self-hosting)
-  - [Activity](#activity)
-  - [API Client](#api-client)
-  - [Changelog](#changelog)
-  - [Versions](#versions)
-  - [Architecture](#architecture)
-  - [Table of Contents](#table-of-contents)
-  - [Pre-requisites](#pre-requisites)
-  - [Verification](#verification)
-  - [Branches \& Contributing](#branches--contributing)
-  - [Setup dev environment](#setup-dev-environment)
-  - [Fast start](#fast-start)
-  - [Installation](#installation)
-  - [Build and run](#build-and-run)
-  - [Run in development mode](#run-in-development-mode)
-  - [Update project structure and database](#update-project-structure-and-database)
-  - [Troubleshooting](#troubleshooting)
-  - [Build \& Watch](#build--watch)
-  - [Tests](#tests)
-    - [Unit tests](#unit-tests)
-    - [UI tests](#ui-tests)
-  - [Package publishing](#package-publishing)
-  - [Additional testing](#additional-testing)
-  - [Native Windows build](#native-windows-build)
-  - [WSL build guide](#wsl-build-guide)
-
-## Pre-requisites
-
-- Before proceeding, ensure that your system meets the following requirements:
-  - [Node.js](https://nodejs.org/en/download/) (v20.11.0 is required)
-  - [Docker](https://docs.docker.com/get-docker/)
-  - [Docker Compose](https://docs.docker.com/compose/install/)
-
-If you use `nvm`, run this after entering the repo to align your shell with the repository Node version:
+You need Node.js 22 (see `.nvmrc`), [Rush](https://rushjs.io), Docker with Compose, and about 8 GB of free memory for the dev server.
 
 ```bash
 nvm use
-```
-
-## Verification
-
-To verify the installation, perform the following checks in your terminal:
-
-- Ensure that the `docker` commands are available:
-
-```bash
-docker --version
-docker compose version
-```
-
-## Branches & Contributing
-
-- The `main` branch is the default branch used for production deployments.
-  Changes to this branch are made from the `staging` branch once a version is ready for community use.
-
-- The `staging` branch is used for pre-release testing.
-  It is stable enough for testing but not yet ready for production deployment.
-
-- The `develop` branch is used for development and is the default branch for contributions.
-
-We periodically merge `develop` into `staging` to perform testing builds. Once we are satisfied with the build quality in our pre-release deployment, we merge changes into `main` and release a new version to the community.
-
-## Setup dev environment
-
-### To initialise the communication submodule
-
-```bash
-git submodule init
-git submodule update
-```
-
-### To update the communication submodule
-
-```bash
-git submodule update
-```
-
-### Authentication
-
-This project uses GitHub Packages for dependency management. To successfully download dependencies, you need to generate a GitHub personal access token and log in to npm using that token.
-
-Follow these steps:
-
-1. Generate a GitHub Token:
-- Log in to your GitHub account
-- Go to **Settings** > **Developer settings** > **Personal access tokens** (https://github.com/settings/personal-access-tokens)
-- Click **Generate new token**
-- Select the required scopes (at least `read:packages`)
-- Generate the token and copy it
-
-2. Authenticate with npm:
-```bash
-npm login --registry=https://npm.pkg.github.com
-```
-
-When prompted, enter your GitHub username, use the generated token as your password
-
-
-## Fast start
-
-```bash
-sh ./scripts/fast-start.sh
-```
-
-## Installation
-
-You need Microsoft's [rush](https://rushjs.io) to install the application.
-
-1. Install Rush globally using the command:
-
-```bash
 npm install -g @microsoft/rush
-```
-
-2. Navigate to the repository root and run the following commands:
-
-```bash
 rush install
 rush build
 ```
 
-Alternatively, you can just execute:
+Then start the backend and the front end:
 
 ```bash
-sh ./scripts/presetup-rush.sh
+dev/servone-stack.sh up       # backend containers; reads DB_CR_URL from dev/.env.servone-cloud
+dev/servone-front.sh local    # webpack dev server against that stack
 ```
 
-## Build and run
+`dev/servone-stack.sh` expects a CockroachDB connection string in `DB_CR_URL`. The Huly stack in [dev/docker-compose.yaml](dev/docker-compose.yaml) with a local `cockroach` container works as well.
 
-Development environment setup requires Docker to be installed on system.
+Run the tests with `rush test` for every package, or `rushx test` inside one package. Desktop builds (`rushx dist` in `desktop-package`) need `DESKTOP_APP_ID`, a reverse-DNS app id such as `app.servone.desktop`.
 
-Support is available for both amd64 and arm64 containers on Linux and macOS.
+Building the Docker images, UI tests, Windows and WSL setup and troubleshooting work as they do upstream; see the [Huly Platform README](https://github.com/hcengineering/platform#readme).
 
-```bash
-cd ./dev/
-rush build    # Will build all the required packages.
-# rush rebuild  # could be used to omit build cache.
-rush bundle   # Will prepare bundles.
-rush package  # Will build all webpack packages.
-rush validate # Will validate all sources with typescript and generate d.ts files required for ts-node execution.
-rush svelte-check # Optional. svelte files validation using svelte-check.
-rush docker:build   # Will build Docker containers for all applications in the local Docker environment.
-rush docker:up # Will set up all the containers
-```
+<details>
+<summary><b>Repository layout</b></summary>
 
-Be aware `rush docker:build` will automatically execute all required phases like build, bundle, package.
+<br>
 
-> **Note:** For resource-constrained machines, you can use the minified variants `rush docker:min` and `rush docker:up:min` to build and run only the required services (excludes hulypulse, redis, process, backup, rating, preview, link-preview, elastic, fulltext, payment, stats, print, sign, hulygun, hulykvs).
+| Path | Contents |
+| --- | --- |
+| `packages/servone-ui` | The Servone front end, loaded over the Huly plugins |
+| `packages/servone-theme` | CSS variables and the Tailwind pipeline behind the Servone components |
+| `packages/servone-approvals` | Approval rules, also enforced inside the transactor |
+| `packages/servone-config`, `servone-forms`, `servone-import`, `servone-mail`, `servone-notify-rules` | Shared libraries used by the front end and the backend |
+| `services/servone` | The backend: MCP server, issues API, webhooks, workflows, imports, starter content |
+| `dev/servone-*` | Local stack scripts, seed data and maintenance scripts |
+| `dev/railway` | The Railway deploy config used for servone.app |
+| `tests/servone` | Playwright end-to-end tests |
 
-Alternatively, you can just execute:
+</details>
 
-```bash
-sh ./scripts/build.sh
-```
+## Built on Huly
 
-By default, Docker volumes named dev_db, dev_elastic, and dev_files will be created for the MongoDB, Elasticsearch, and MinIO instances.
+Servone is a fork of the [Huly Platform](https://github.com/hcengineering/platform). Huly provides the data model, the real-time transactor, the account service and most of the plugins. Servone keeps its own work in separate packages and keeps edits inside Huly's files small, so upstream changes can still be merged in.
 
-Add the following lines to your hosts file:
+- Servone's own code lives in `packages/servone-*`, `services/servone`, `dev/servone-*`, `dev/railway` and `tests/servone`.
+- Every change made inside an upstream Huly file is listed in [docs/upstream-edits.md](docs/upstream-edits.md).
+- [NOTICE](NOTICE) records the upstream commit this tree is synced with.
 
-- **macOS / Linux:** `/etc/hosts`
-- **Windows:** `C:\Windows\System32\drivers\etc\hosts`
+Thank you to the Huly team and every contributor to the platform.
 
-```plain
-127.0.0.1 huly.local
-::1 huly.local
-```
+## Contributing
 
-Accessing the URL <http://huly.local:8087> will lead you to the app in development mode.
+Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, where code goes and how to send a change, and the [Code of Conduct](CODE_OF_CONDUCT.md). Questions go to [Discussions](https://github.com/Trox824/servone/discussions).
 
-Limitations:
+Report security problems privately as described in [SECURITY.md](SECURITY.md). If the problem is in unmodified Huly code, report it to [Huly](https://github.com/hcengineering/platform/security) as well.
 
-- Local installation does not support sending emails, thus disabling functionalities such as password recovery and email notifications.
+## License
 
-## Run in development mode
-
-Development mode allows for live reloading and a smoother development process.
-
-```bash
-cd dev/prod
-rush validate
-rushx dev-server
-```
-
-Then go to <http://localhost:8080>
-
-Select "Sign up" on the right panel and click the "Sign up with password" link at the bottom. Enter the new user's credentials, then proceed to create a workspace for them.
-
-## Update project structure and database
-
-If the project's structure is updated, it may be necessary to relink and rebuild the projects.
-
-```bash
-rush update
-rush build
-```
-
-## Troubleshooting
-
-If a build fails, but the code is correct, try to delete the [build cache](https://rushjs.io/pages/maintainer/build_cache/) and retry.
-
-```bash
-# from the project root
-rm -rf common/temp/build-cache
-```
-
-## Build & Watch
-
-For development purpose `rush build:watch` action could be used.
-
-It includes build and validate phases in watch mode.
-
-## Tests
-
-### Unit tests
-
-```bash
-rush test # To execute all tests
-
-rushx test # For individual test execution inside a package directory
-```
-
-### UI tests
-
-```bash
-cd ./tests
-rush build
-rush bundle
-rush docker:build
-## creates test Docker containers and sets up test database
-./prepare.sh
-## runs UI tests
-rushx uitest
-```
-
-To execute tests in the development environment, please follow these steps:
-
-```bash
-cd ./tests
-./create-local.sh ## use ./restore-local.sh if you only want to restore the workspace to a predefined initial state for sanity.
-cd ./sanity
-rushx dev-uitest # To execute all tests against the development environment.
-rushx dev-debug -g 'pattern' # To execute tests in debug mode with only the matching test pattern.
-```
-
-## Package publishing
-
-```bash
-node ./common/scripts/bump.js -p projectName
-```
-
-## Additional testing
-
-This project is tested with BrowserStack.
-
-## Native Windows build
-
-The repository can be built and run directly on Windows, without WSL. Build and run scripts are written in bash; on Windows they are executed with Git Bash through `common/scripts/bash.js`, so no extra setup is needed beyond the usual prerequisites:
-
-- [Git for Windows](https://git-scm.com/download/win) (it provides Git Bash). If it is installed in a non-standard location and `git` is not on `PATH`, set `GIT_BASH` to the full path of `bash.exe`, e.g. `C:\Program Files\Git\bin\bash.exe`.
-- Node.js, Rush and Docker Desktop as described in [Pre-requisites](#pre-requisites).
-
-Run `rush` and `rushx` commands from any shell (PowerShell, cmd or Git Bash).
-
-Notes for contributors:
-
-- Do not put bash syntax (`$(...)`, `rm -rf`, `cp`, `|| true`, `>/dev/null`, single quotes) directly into `package.json` scripts: Windows runs them with `cmd.exe`. Put such a command into the `bashScripts` section of the same `package.json` and call it as `node <path-to-root>/common/scripts/bash.js --script <name>`.
-- Call `.sh` files as `node <path-to-root>/common/scripts/bash.js <path-to-script>.sh [args]`, not directly.
-- `.sh` files are always checked out with LF line endings (see `.gitattributes`).
-- On Windows the wrapper disables Git Bash path conversion (`MSYS_NO_PATHCONV=1`), so arguments such as `UPLOAD_URL=/files` are passed as is.
-
-## WSL build guide
-
-This guide describes the nuances of building and running the application from source code located on your NTFS drive, which is accessible from both Windows and WSL.
-
-### Prerequisites
-
-#### Disk Space Requirements
-
-Ensure you have sufficient disk space available:
-- A fully deployed local application in clean Docker will consume slightly more than **35 GB** of WSL virtual disk space
-- The application folder after build (sources + artifacts) will occupy **4.5 GB**
-
-If there's insufficient space on your system drive (usually `C:\`), you can change the virtual disk location in Docker Settings → Resources → Advanced.
-
-#### Docker WSL Integration
-
-Make sure Docker is accessible from WSL:
-
-1. Go to Docker Settings → Resources → Advanced → WSL Integration
-2. Select the distribution where you'll be building and running the application
-3. Verify integration works by running this command in WSL:
-   ```bash
-   docker run hello-world
-   ```
-
-### Common Issues and Solutions
-
-#### Git Line Endings on Windows
-
-Windows Git often automatically replaces line endings. Since most build scripts are `.sh` files, ensure your Windows checkout doesn't break them.
-
-**Solution options:**
-- Checkout from WSL instead of Windows
-- Configure Git on Windows to disable auto-replacement:
-  ```bash
-  git config --global core.autocrlf false
-  ```
-  This disables auto-replacement for all repositories on your machine.
-
-#### Elevated Privileges in WSL
-
-Some commands in the instructions require elevated privileges when working in WSL. If you're using Ubuntu distribution, prefix commands with `sudo`:
-
-```bash
-sudo npm install -g @microsoft/rush
-```
-
-#### WSL Configuration
-
-If the source code is located on a Windows NTFS drive, then edit the `/etc/wsl.conf` file in WSL (e.g., `sudo nano /etc/wsl.conf`) and add the following content if it doesn't exist:
-
-```ini
-[automount]
-enabled = true
-root = /mnt/
-options = "metadata,umask=22,fmask=11"
-
-[interop]
-appendWindowsPath = false
-```
-
-However, we recommend storing the repository on a WSL disk, as this dramatically improves build and maintenance operations.
-
-### Running the Application
-
-After these preparations, the build instructions should work without issues.
-
-#### Port Conflicts
-
-When starting the application (`rush docker:up`), some network ports in Windows might be occupied. You can fix port mapping in the `\dev\docker-compose.yaml` file.
-
-**Important:** Depending on which port you change, you'll need to:
-1. Find what's using that port
-2. Update the new address in the corresponding service configuration
-
-<sub><sup>&copy; 2025 <a href="https://hardcoreeng.com">Hardcore Engineering Inc</a>.</sup></sub>
+Servone is licensed under the [Eclipse Public License 2.0](LICENSE), the same license as Huly.
