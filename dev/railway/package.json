@@ -1,0 +1,9 @@
+{
+  "name": "servone-railway",
+  "private": true,
+  "description": "Railway IaC for the Servone Huly backend — see .railway/railway.ts",
+  "type": "module",
+  "dependencies": {
+    "railway": "^3.11.0"
+  }
+}

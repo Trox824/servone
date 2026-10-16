@@ -1,0 +1,8 @@
+node_modules/
+secret.txt
+creds.json
+package-lock.json
+resend.txt
+google-calendar.json
+vapid.json
+r2.json

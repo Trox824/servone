@@ -1,0 +1,134 @@
+# servone: backend-only stack for running the webpack dev-server (dev/prod) against upstream
+# images pinned to the release closest to our fork point (s0.7.437).
+# Started by servone-stack.sh; then `cd prod && DEV_ACCOUNT_URL=http://localhost:3001 rushx dev-server`.
+#
+# - Browser-facing URLs use localhost (no /etc/hosts edit needed).
+# - Container-to-container calls to account use the compose DNS name `account`
+#   (host port 3000 is often taken locally; account is published on 3001).
+# - Memory caps keep the whole stack under ~3 GB.
+services:
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+    mem_limit: 384m
+  cockroach:
+    command: start-single-node --insecure --cache=256MiB --max-sql-memory=256MiB
+    mem_limit: 1g
+  redpanda:
+    mem_limit: 768m
+  account:
+    image: hardcoreeng/account:s0.7.437
+    mem_limit: 512m
+    ports: !override
+      - 3001:3000
+    environment:
+      # internal;external;region: Servone services in containers can't reach the transactor on localhost.
+      - TRANSACTOR_URL=ws://transactor_cockroach:3332;ws://localhost:3332;cockroach,
+      - FRONT_URL=http://localhost:8080
+      - ACCOUNTS_URL=http://account:3000
+  workspace_cockroach:
+    image: hardcoreeng/workspace:s0.7.437
+    mem_limit: 768m
+    environment:
+      - ACCOUNTS_URL=http://account:3000
+  transactor_cockroach:
+    image: hardcoreeng/transactor:s0.7.437
+    mem_limit: 1g
+    environment:
+      - FRONT_URL=http://localhost:8080
+      - FILES_URL=http://localhost:4030/blob/:workspace/:blobId/:filename
+      - ACCOUNTS_URL=http://account:3000
+      # Push goes through the push gate in `servone` (profile servone); set to http://servone:4073 to enable.
+      - WEB_PUSH_URL=${SERVONE_WEB_PUSH_URL:-}
+  collaborator:
+    image: hardcoreeng/collaborator:s0.7.437
+    mem_limit: 512m
+    environment:
+      - ACCOUNTS_URL=http://account:3000
+  datalake:
+    image: hardcoreeng/datalake:s0.7.437
+    mem_limit: 512m
+    environment:
+      - ACCOUNTS_URL=http://account:3000
+    depends_on: !override
+      minio:
+        condition: service_healthy
+      cockroach:
+        condition: service_started
+      account:
+        condition: service_started
+  front:
+    image: hardcoreeng/front:s0.7.437
+    profiles: ["full"]
+  # Stock web push sender; VAPID keys from `npx web-push generate-vapid-keys`.
+  notification:
+    image: hardcoreeng/notification:s0.7.437
+    profiles: ["servone"]
+    mem_limit: 256m
+    restart: unless-stopped
+    environment:
+      - PORT=8091
+      - SOURCE=mailto:dev@servone.local
+      - PUSH_SUBJECT=mailto:dev@servone.local
+      - PUSH_PUBLIC_KEY=${PUSH_PUBLIC_KEY}
+      - PUSH_PRIVATE_KEY=${PUSH_PRIVATE_KEY}
+  hulykvs:
+    image: hardcoreeng/hulykvs:s0.7.437
+    profiles: ["servone"]
+    mem_limit: 256m
+  # Message reminders (calendar Event reminders) and Studio date rules need both.
+  time-machine:
+    image: hardcoreeng/worker:s0.7.437
+    profiles: ["servone"]
+    mem_limit: 384m
+  events-processor:
+    image: hardcoreeng/events-processor:s0.7.437
+    profiles: ["servone"]
+    mem_limit: 384m
+    environment:
+      - ACCOUNTS_URL=http://account:3000
+  # Card Studio automations; date rules also go through time-machine above.
+  process-service:
+    image: hardcoreeng/process:s0.7.437
+    profiles: ["servone"]
+    mem_limit: 384m
+    environment:
+      - ACCOUNTS_URL=http://account:3000
+      - COLLABORATOR_URL=http://collaborator:3078
+  # Built from this fork: cd services/servone && rushx bundle && rushx docker:build
+  # MCP, webhooks, digest unsubscribe, push gate, notify scheduler and department channels in one process.
+  servone:
+    image: servone/services
+    profiles: ["servone"]
+    mem_limit: 384m
+    restart: unless-stopped
+    ports:
+      - 4073:4073
+    depends_on:
+      redpanda:
+        condition: service_started
+      account:
+        condition: service_started
+      hulykvs:
+        condition: service_started
+      collaborator:
+        condition: service_started
+      notification:
+        condition: service_started
+    environment:
+      - PORT=4073
+      - SECRET=secret
+      - ACCOUNTS_URL=http://account:3000
+      - HULYKVS_URL=http://hulykvs:8094
+      - COLLABORATOR_URL=http://collaborator:3078
+      - NOTIFICATION_URL=http://notification:8091
+      # No mail container in this stack; digest emails fail to send until MAIL_URL points at one.
+      - MAIL_URL=${MAIL_URL:-http://mail:8097}
+      - FRONT_URL=http://localhost:8080
+      - PUBLIC_URL=http://localhost:4073
+      - QUEUE_CONFIG=${QUEUE_CONFIG}
+      - QUEUE_REGION=cockroach
+      # Same blob storage the local transactor uses, so mail attachments and bodies land in the same bucket.
+      - STORAGE_CONFIG=${STORAGE_CONFIG}
+      - MAIL_SYNC_ENABLED=true
+      # Local-only key for the mailbox password vault; generate with `openssl rand -base64 32`, never reused in prod.
+      - MAIL_VAULT_KEYS=k1:oXB4PrMXrqxdGosrZhZ2Llw1DK0k+RmUN8ubSo/OXWg=

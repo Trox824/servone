@@ -1,0 +1,20 @@
+# servone: run the backend stack against CockroachDB Cloud instead of the local `cockroach` container.
+# Saves ~1 GB of Docker VM RAM. Layer this AFTER servone-backend.override.yaml; see servone-stack.sh for the command.
+# Only the `cockroach` dependency edges are removed; DB_URL / ACCOUNTS_DB_URL still come from ${DB_CR_URL} (set by .env.servone-cloud).
+# TLS: the cloud CA is ISRG Root X1 (Let's Encrypt), already in Node's bundled roots — no cert mount.
+services:
+  # `cockroach` stays defined (other upstream services reference it) but nothing we start depends on it,
+  # so it is never created. `docker compose ... up -d cockroach` still works for a local fallback.
+  workspace_cockroach:
+    links: !override
+      - minio
+  transactor_cockroach:
+    links: !override
+      - minio
+      - account
+  datalake:
+    depends_on: !override
+      minio:
+        condition: service_healthy
+      account:
+        condition: service_started
