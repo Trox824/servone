@@ -102,10 +102,11 @@ export function getSelectedDate (
 
     const messageRect = msgElement.getBoundingClientRect()
 
+    // servone: measure from the list top; on phones the list starts well below the window top.
     const isInView =
-      messageRect.top > 0 &&
+      messageRect.top > containerRect.top &&
       messageRect.top < containerRect.bottom &&
-      messageRect.bottom - headerHeight - 2 * dateSelectorHeight > 0 &&
+      messageRect.bottom - containerRect.top - 2 * dateSelectorHeight > 0 &&
       messageRect.bottom <= containerRect.bottom
 
     if (isInView) {

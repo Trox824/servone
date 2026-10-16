@@ -728,10 +728,12 @@ export class TSessionManager implements SessionManager {
           if (wsInfo === undefined) {
             // In case of guest or system account
             // We need to get workspace info for system account.
+            // Only system tokens skip the membership check, so only their answer is safe to cache and reuse.
+            const isCacheAllowed = token.account === systemAccountUuid
             let workspaceInfo: WorkspaceInfoWithStatus | undefined
             try {
-              workspaceInfo =
-                this.workspaceInfoCache.get(token.workspace) ?? (await this.getWorkspaceInfo(ctx, rawToken, false))
+              const cachedInfo = isCacheAllowed ? this.workspaceInfoCache.get(token.workspace) : undefined
+              workspaceInfo = cachedInfo ?? (await this.getWorkspaceInfo(ctx, rawToken, false))
             } catch (err: unknown) {
               if (err instanceof PlatformError) {
                 ctx.warn('addSession: getWorkspaceInfo failed', {
@@ -746,7 +748,9 @@ export class TSessionManager implements SessionManager {
             if (workspaceInfo === undefined) {
               return { error: new Error('Workspace not found or not available'), terminate: true }
             }
-            this.workspaceInfoCache.set(token.workspace, workspaceInfo)
+            if (isCacheAllowed) {
+              this.workspaceInfoCache.set(token.workspace, workspaceInfo)
+            }
 
             wsInfo = {
               url: workspaceInfo.url,
@@ -1189,6 +1193,21 @@ export class TSessionManager implements SessionManager {
       ws.closing = undefined
     } else {
       this.ctx.warn('force-close-unknown', { wsId })
+    }
+  }
+
+  async closeAccount (wsId: WorkspaceUuid, accountUuid: AccountUuid, ignoreSocket?: ConnectionSocket): Promise<void> {
+    const ws = this.workspaces.get(wsId)
+    if (ws === undefined) {
+      this.ctx.warn('close-account-unknown', { wsId, accountUuid })
+      return
+    }
+    this.ctx.warn('close-account', { name: ws.wsId.url, accountUuid })
+    const targets = Array.from(ws.sessions.values()).filter(
+      (it) => it.session.getUser() === accountUuid && it.socket.id !== ignoreSocket?.id
+    )
+    for (const it of targets) {
+      await this.close(this.ctx, it.socket, wsId)
     }
   }
 

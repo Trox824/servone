@@ -94,8 +94,14 @@ async function main() {
   })
 
   const env = {
-    MODEL_VERSION: define['MODEL_VERSION'] ? getVersionFromScript('./show_version.js') : undefined,
-    VERSION: getVersionFromScript('./show_tag.js'),
+    // servone: Railway builds have no .git, so show_version.js falls back to 0.6.0 and every workspace reads as outdated.
+    MODEL_VERSION: define['MODEL_VERSION']
+      ? process.env.MODEL_VERSION
+        ? JSON.stringify(process.env.MODEL_VERSION)
+        : getVersionFromScript('./show_version.js')
+      : undefined,
+    // servone: same fallback for the hello version; a transactor off by one from the front refuses every client.
+    VERSION: process.env.VERSION ? JSON.stringify(process.env.VERSION) : getVersionFromScript('./show_tag.js'),
     GIT_REVISION: define['GIT_REVISION'] ? getGitRevision() : undefined
   }
 

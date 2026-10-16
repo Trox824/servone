@@ -28,7 +28,7 @@ import type {
 } from '@hcengineering/core'
 import core, { hasAccountRole } from '@hcengineering/core'
 import login from '@hcengineering/login'
-import { getMetadata, getResource, setMetadata } from '@hcengineering/platform'
+import { getMetadata, getResource, setMetadata, type Metadata } from '@hcengineering/platform'
 import presentation, {
   clearWorkspaceFaviconCache,
   closeClient,
@@ -180,6 +180,14 @@ export const currentWorkspaceStore = derived(
 
 /**
  * @public
+ * servone: see buildNavModel.
+ */
+export const navModelExtender = 'servone:metadata:NavModelExtender' as Metadata<
+(app: Application, model: NavigatorModel | undefined) => NavigatorModel | undefined
+>
+
+/**
+ * @public
  */
 export async function buildNavModel (
   client: TxOperations,
@@ -208,6 +216,12 @@ export async function buildNavModel (
         specials: [...(newNavModel?.specials ?? []), ...(nm.specials ?? [])]
       }
     }
+  }
+  // servone: client-side navigator extensions (e.g. servone-ui tracker-resources/sprints/install.ts); the
+  // upstream transactor builds the model, so a model-side ApplicationNavModel of ours would never exist.
+  const extend = getMetadata(navModelExtender)
+  if (currentApplication !== undefined && extend !== undefined) {
+    newNavModel = extend(currentApplication, newNavModel)
   }
   return newNavModel
 }

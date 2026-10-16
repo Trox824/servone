@@ -25,7 +25,6 @@
   import { createEventDispatcher } from 'svelte'
   import { activeComponent, activeMilestone } from '../../issues'
   import tracker from '../../plugin'
-  import ComponentSelector from '../components/ComponentSelector.svelte'
   import AssigneeEditor from '../issues/AssigneeEditor.svelte'
   import PriorityEditor from '../issues/PriorityEditor.svelte'
   import MilestoneSelector from '../milestones/MilestoneSelector.svelte'
@@ -102,14 +101,6 @@
 
     await client.createDoc(tracker.class.IssueTemplate, _space, value, objectId)
     objectId = generateId()
-  }
-
-  const handleComponentIdChanged = (componentId: Ref<ComponentType> | null | undefined) => {
-    if (componentId === undefined) {
-      return
-    }
-
-    object = { ...object, component: componentId }
   }
 
   const handleMilestoneIdChanged = (milestoneId: Ref<Milestone> | null | undefined) => {
@@ -233,14 +224,6 @@
       }}
     />
     <EstimationEditor kind={'regular'} size={'large'} value={object} />
-    <ComponentSelector
-      {space}
-      value={object.component}
-      onChange={handleComponentIdChanged}
-      isEditable={true}
-      kind={'regular'}
-      size={'large'}
-    />
     <MilestoneSelector
       {space}
       value={object.milestone}

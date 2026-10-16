@@ -135,9 +135,10 @@
   let docWidth: number = window.innerWidth
   let docHeight: number = window.innerHeight
 
+  const PHONE_MAX_WIDTH = 480
   let isMobile: boolean
   const alwaysMobile: boolean = false
-  $: isMobile = alwaysMobile || checkMobile()
+  $: isMobile = alwaysMobile || checkMobile() || docWidth <= PHONE_MAX_WIDTH
   let isPortrait: boolean
   $: isPortrait = docWidth <= docHeight
 

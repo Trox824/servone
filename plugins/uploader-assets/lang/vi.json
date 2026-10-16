@@ -1,0 +1,15 @@
+{
+  "string": {
+    "Cancel": "Hủy",
+    "Retry": "Thử lại",
+    "UploadFiles": "Tải tệp lên",
+    "UploadFolders": "Tải thư mục lên",
+    "UploadingTo": "Đang tải {files, plural, =1 {# tệp} other {# tệp}} lên"
+  },
+  "status": {
+    "Error": "Lỗi",
+    "Waiting": "Đang chờ",
+    "Uploading": "Đang tải lên",
+    "Completed": "Hoàn tất"
+  }
+}

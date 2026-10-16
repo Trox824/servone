@@ -26,6 +26,7 @@
   import cardPlugin from '../../plugin'
   import CreateCardPopup from '../CreateCardPopup.svelte'
   import { isBaseTypeWithSubtypes } from '../../utils'
+  import { isArchivedType } from '../../servone-archived'
 
   export let type: MasterTag
   export let level: number = -1
@@ -59,7 +60,8 @@
     const typeString = await translate(type.label, {}, lang)
     const createString = await translate(presentation.string.Create, {}, lang)
 
-    if (config.allowCreate === true) {
+    // servone: no "Create" action on a type archived in Card Studio.
+    if (config.allowCreate === true && !isArchivedType(type)) {
       result.push({
         id: 'create-card',
         label: getEmbeddedLabel(`${createString} ${typeString}`),

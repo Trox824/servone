@@ -14,7 +14,8 @@
 -->
 <script lang="ts">
   import { Class, Doc, Ref } from '@hcengineering/core'
-  import { Component, Icon, Label, showPopup } from '@hcengineering/ui'
+  import { getMetadata, type Metadata } from '@hcengineering/platform'
+  import { Component, Icon, Label, showPopup, type AnySvelteComponent } from '@hcengineering/ui'
   import view from '@hcengineering/view'
   import contact from '@hcengineering/contact'
 
@@ -36,6 +37,12 @@
   let broken: boolean = false
   const withoutDoc: Ref<Doc>[] = [contact.mention.Here, contact.mention.Everyone]
 
+  // servone: chips for mentions the stock model has no presenter for (@team); set in servone-ui shell/install.ts.
+  const mentionChips = 'servone:metadata:MentionChips' as Metadata<
+  Partial<Record<Ref<Class<Doc>>, AnySvelteComponent>>
+  >
+  $: chip = _class !== undefined ? getMetadata(mentionChips)?.[_class] : undefined
+
   $: clazz = _class ? hierarchy.findClass(_class) : undefined
 
   $: icon =
@@ -46,7 +53,13 @@
       ? clazz?.icon
       : null
 
-  $: if (_class != null && _id != null && hierarchy.hasClass(_class) && !withoutDoc.includes(_id as any)) {
+  $: if (
+    chip === undefined &&
+    _class != null &&
+    _id != null &&
+    hierarchy.hasClass(_class) &&
+    !withoutDoc.includes(_id as any)
+  ) {
     docQuery.query(_class, { _id }, (r) => {
       doc = r.shift()
       broken = doc === undefined
@@ -63,7 +76,9 @@
   }
 </script>
 
-{#if !doc && title}
+{#if chip}
+  <svelte:component this={chip} {_id} {title} {transparent} />
+{:else if !doc && title}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <span class="antiMention" class:transparent class:broken on:click={onBrokenLinkClick}>

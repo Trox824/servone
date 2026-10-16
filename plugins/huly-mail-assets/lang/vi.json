@@ -1,0 +1,20 @@
+{
+  "string": {
+    "IntegrationLabel": "Thư Servone",
+    "IntegrationDescription": "Kết nối hộp thư Servone để gửi, nhận và quản lý email",
+    "Connect": "Kết nối",
+    "ConnectHulyMail": "Kết nối hộp thư Servone",
+    "Cancel": "Hủy",
+    "Email": "Email",
+    "Status": "Trạng thái",
+    "FailedToConnect": "Dịch vụ thư Servone hiện không khả dụng",
+    "TotalMessages": "Tổng số thư:",
+    "Configure": "Cấu hình thư Servone",
+    "ChannelSpace": "Không gian cho kênh thư",
+    "PersonSpaceInfo": "Chỉ bạn xem được thư",
+    "SharedSpaceInfo": "Mọi người tham gia không gian đều xem được thư",
+    "Mailbox": "Hộp thư",
+    "MailboxesNotConfigured": "Không tìm thấy hộp thư nào",
+    "ConfigureMailBoxes": "Hãy thêm hộp thư trong mục `Hộp thư` để bắt đầu"
+  }
+}

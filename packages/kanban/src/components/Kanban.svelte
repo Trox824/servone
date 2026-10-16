@@ -195,10 +195,13 @@
         let arr = getGroupByValues(groupByDocs, state) ?? []
         let dragCardIndex = -1
         let targetIndex = -1
+        // Servone: a column hop moves the drag card without clearing this cache; a stale index splices out another card and duplicates the dragged one.
         if (
           cardOverPos !== undefined &&
           cardOverPos.overCardId === object._id &&
-          cardOverPos.dragCardId === dragCard._id
+          cardOverPos.dragCardId === dragCard._id &&
+          arr[cardOverPos.dragCardPos]?._id === dragCard._id &&
+          arr[cardOverPos.overCardPos]?._id === object._id
         ) {
           dragCardIndex = cardOverPos.dragCardPos
           targetIndex = cardOverPos.overCardPos

@@ -543,7 +543,7 @@ describe('PostgresAccountDB', () => {
 
         expect(mockClient).toHaveBeenCalledWith('global_account.workspace_members')
         expect(mockClient).toHaveBeenCalledWith(
-          ['SELECT role FROM ', ' WHERE workspace_uuid = ', ' AND account_uuid = ', ''],
+          ['SELECT role FROM ', ' WHERE workspace_uuid = ', ' AND account_uuid = ', ' AND NOT disabled'],
           expect.anything(),
           workspaceId,
           accountId
@@ -552,23 +552,31 @@ describe('PostgresAccountDB', () => {
 
       it('should get workspace members', async () => {
         spyValue = [
-          { account_uuid: 'acc1', role: AccountRole.Owner },
-          { account_uuid: 'acc2', role: AccountRole.Maintainer }
+          { account_uuid: 'acc1', role: AccountRole.Owner, disabled: false },
+          { account_uuid: 'acc2', role: AccountRole.Maintainer, disabled: true }
         ]
 
         const result = await accountDb.getWorkspaceMembers(workspaceId)
 
         expect(mockClient).toHaveBeenCalledWith('global_account.workspace_members')
         expect(mockClient).toHaveBeenCalledWith(
-          ['SELECT account_uuid, role FROM ', ' WHERE workspace_uuid = ', ''],
+          ['SELECT account_uuid, role, disabled FROM ', ' WHERE workspace_uuid = ', ''],
           expect.anything(),
           workspaceId
         )
 
         expect(result).toEqual([
-          { person: 'acc1', role: AccountRole.Owner },
-          { person: 'acc2', role: AccountRole.Maintainer }
+          { person: 'acc1', role: AccountRole.Owner, disabled: false },
+          { person: 'acc2', role: AccountRole.Maintainer, disabled: true }
         ])
+      })
+
+      it('should refuse to re-assign a deactivated member', async () => {
+        spyValue = [{ disabled: true }]
+
+        await expect(accountDb.assignWorkspace(accountId, workspaceId, role)).rejects.toThrow()
+
+        expect(spyTag.mock.calls.some((call) => String(call[0]).includes('INSERT'))).toBe(false)
       })
     })
 

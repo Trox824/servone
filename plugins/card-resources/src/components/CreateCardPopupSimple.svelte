@@ -151,7 +151,7 @@
   </svelte:fragment>
   <ModernEditbox bind:value={data.title} label={view.string.Title} size="medium" kind="ghost" autoFocus />
   <svelte:fragment slot="pool">
-    <div slot="afterContent" class="error p-4 flex-row-reverse">
+    <div class="error p-4 flex-row-reverse">
       {#if !allowed}
         <Label label={view.string.NoCreatePermissionTitle} />
       {/if}

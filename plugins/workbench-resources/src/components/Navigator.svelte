@@ -157,7 +157,8 @@
           <TreeSeparator line />
         {/if}
         {#await checkIsDisabled(special) then disabled}
-          <NavLink space={special.id} {disabled}>
+          <!-- servone: pin the app; Quy trình item pages sit at /tracker/<id>, so My work resolved to /tracker/my-work. -->
+          <NavLink app={currentApplication?.alias} space={special.id} {disabled}>
             <NavItem
               label={special.label}
               icon={special.icon}
@@ -187,7 +188,7 @@
     {/if}
 
     {#if model.groups && model.groups.length > 0}
-      <div class="min-h-3 flex-no-shrink" />
+      <!-- servone: no second spacer; with nothing saved or starred it stacked on the one above (Cards gap). -->
       {#each model.groups as group (group.id)}
         {#if group.component}
           <Component is={group.component} props={{ model: group, currentSpace }} />

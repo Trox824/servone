@@ -15,9 +15,10 @@
 
 import { type ActivityMessage } from '@hcengineering/activity'
 import chunter, { type Channel, type ChatMessage, type DirectMessage } from '@hcengineering/chunter'
-import { type Resources } from '@hcengineering/platform'
+import { type IntlString, type Resources } from '@hcengineering/platform'
 import { MessageBox, getClient } from '@hcengineering/presentation'
 import { getLocation, navigate, showPopup } from '@hcengineering/ui'
+import { canArchiveSpace } from '@hcengineering/view-resources'
 import { writable } from 'svelte/store'
 
 import ChannelCreatedMessage from './components/activity/ChannelCreatedMessage.svelte'
@@ -117,7 +118,15 @@ export async function ArchiveChannel (channel: Channel, evt: any, props?: { afte
   })
 }
 
+// servone: registered by packages/servone-ui/src/shell/strings.ts.
+const CHANNEL_MANAGERS_ONLY = 'chunter:string:ServoneChannelManagersOnly' as IntlString
+
 async function UnarchiveChannel (channel: Channel): Promise<void> {
+  // servone: the stock model gives this action no visibility tester, so the owner check runs on click.
+  if (!(await canArchiveSpace(channel))) {
+    showPopup(MessageBox, { label: chunter.string.UnarchiveChannel, message: CHANNEL_MANAGERS_ONLY, canSubmit: false })
+    return
+  }
   showPopup(MessageBox, {
     label: chunter.string.UnarchiveChannel,
     message: chunter.string.UnarchiveConfirm,

@@ -22,6 +22,7 @@
   import card from '../plugin'
   import { isBaseTypeWithSubtypes } from '../utils'
   import CreateCardPopup from './CreateCardPopup.svelte'
+  import { isArchivedType } from '../servone-archived'
 
   export let _class: Ref<Class<Doc>> | undefined
 
@@ -69,4 +70,7 @@
   }
 </script>
 
-<ButtonIcon kind="primary" icon={IconAdd} size="small" dataId={'btnCreateCard'} on:click={createCard} />
+<!-- servone: an archived type's page keeps its records but offers no create button. -->
+{#if _class === undefined || !isArchivedType(hierarchy.getClass(_class))}
+  <ButtonIcon kind="primary" icon={IconAdd} size="small" dataId={'btnCreateCard'} on:click={createCard} />
+{/if}

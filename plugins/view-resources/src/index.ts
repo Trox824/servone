@@ -200,6 +200,7 @@ export {
   resultIssueCountStore,
   rawSearchTextStore,
   searchHighlightEnabledStore,
+  showEmptyGroupsStore,
   claimResultCountOwner,
   setResultCount,
   releaseResultCountOwner,

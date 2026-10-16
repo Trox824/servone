@@ -997,6 +997,7 @@ export interface WorkspaceInfoWithStatus extends WorkspaceInfo {
 export interface WorkspaceMemberInfo {
   person: AccountUuid
   role: AccountRole
+  disabled: boolean
 }
 
 export enum SocialIdType {

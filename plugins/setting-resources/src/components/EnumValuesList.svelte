@@ -126,9 +126,9 @@
       selected = undefined
     }}
   >
-    <button class="hulyTableAttr-content__row-dragMenu" class:drag={!disableMouseOver}>
+    <span class="hulyTableAttr-content__row-dragMenu" class:drag={!disableMouseOver} role="button" tabindex="0">
       <IconMoreV2 size={'small'} />
-    </button>
+    </span>
     <div class="hulyTableAttr-content__row-label font-regular-14 accent">
       <ModernEditbox
         kind={'ghost'}

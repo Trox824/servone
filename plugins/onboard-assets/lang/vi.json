@@ -1,0 +1,19 @@
+{
+  "status": {
+    "RequiredField": "Bạn cần nhập {field}",
+    "FieldsDoNotMatch": "{field} không khớp với {field2}",
+    "ConnectingToServer": "Đang kết nối tới máy chủ..."
+  },
+  "string": {
+    "CreateWorkspace": "Tạo không gian làm việc",
+    "LastName": "Họ",
+    "FirstName": "Tên",
+    "Workspace": "Tên không gian làm việc",
+    "FillInProfile": "Cho chúng tôi biết về bạn",
+    "SetUpPassword": "Đặt mật khẩu",
+    "Next": "Tiếp",
+    "Skip": "Bỏ qua",
+    "SignUpCompleted": "Bạn đã đăng ký xong",
+    "StartUsingHuly": "Bắt đầu dùng Servone"
+  }
+}

@@ -68,13 +68,16 @@ import {
   doReleaseSocialId,
   getLastPasswordChangeEvent,
   isPasswordChangedSince,
+  stampIssuedOn,
+  matchesEmailMask,
+  checkInvite,
   reportInvalidToken,
   tokenErrorReason,
   tokenFingerprint
 } from '../utils'
 // eslint-disable-next-line import/no-named-default
 import platform, { getMetadata, PlatformError, Severity, Status } from '@hcengineering/platform'
-import serverToken, { decodeTokenVerbose, generateToken, TokenError } from '@hcengineering/server-token'
+import serverToken, { decodeToken, decodeTokenVerbose, generateToken, TokenError } from '@hcengineering/server-token'
 import { Analytics } from '@hcengineering/analytics'
 import { randomBytes } from 'crypto'
 
@@ -99,6 +102,7 @@ jest.mock('@hcengineering/server-token', () => ({
   __esModule: true,
   default: jest.requireActual('@hcengineering/server-token').default,
   TokenError: jest.requireActual('@hcengineering/server-token').TokenError,
+  decodeToken: jest.fn(),
   decodeTokenVerbose: jest.fn(),
   generateToken: jest.fn()
 }))
@@ -111,6 +115,45 @@ jest.mock('@hcengineering/analytics', () => ({
 }))
 
 describe('account utils', () => {
+  describe('matchesEmailMask', () => {
+    test.each([
+      ['*@company.vn', 'An@Company.vn', true],
+      ['*@company.vn', 'an@evil.vn', false],
+      ['*@company.vn', 'an@company.vn.evil.com', false],
+      ['hr-*@company.vn', 'hr-an@company.vn', true],
+      ['hr-*@company.vn', 'an@company.vn', false],
+      ['a*b*b', 'ab', false],
+      ['a*b*b', 'abb', true],
+      ['an@company.vn', 'an@company.vn', true],
+      ['an@company.vn', 'bo@company.vn', false],
+      ['(a+)+$', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!', false]
+    ])('%s against %s is %s', (mask, email, expected) => {
+      expect(matchesEmailMask(mask, email)).toBe(expected)
+    })
+  })
+
+  describe('checkInvite', () => {
+    const ctx = { warn: jest.fn() } as unknown as MeasureContext
+    const invite = {
+      id: 'invite-1',
+      workspaceUuid: 'ws-1' as WorkspaceUuid,
+      expiresOn: -1,
+      remainingUses: -1,
+      role: AccountRole.User,
+      emailPattern: '*@company.vn'
+    }
+
+    test('rejects an email outside the invite mask', async () => {
+      await expect(checkInvite(ctx, invite, 'an@gmail.com')).rejects.toThrow(
+        new PlatformError(new Status(Severity.ERROR, platform.status.Forbidden, {}))
+      )
+    })
+
+    test('accepts an email inside the invite mask', async () => {
+      await expect(checkInvite(ctx, invite, 'an@company.vn')).resolves.toBe('ws-1')
+    })
+  })
+
   describe('cleanEmail', () => {
     test.each([
       ['  Test@Example.com  ', 'test@example.com', 'should trim spaces and convert to lowercase'],
@@ -747,6 +790,63 @@ describe('account utils', () => {
         { timezone: mockTimezone }
       )
     })
+
+    describe('password change revocation', () => {
+      const accountUuid = 'account-uuid' as AccountUuid
+      const exists = jest.fn()
+      const dbWithEvents = { accountEvent: { exists } } as unknown as AccountDB
+
+      test('rejects a session issued before the last password change', async () => {
+        ;(decodeToken as jest.Mock).mockReturnValue({ account: accountUuid, extra: { issuedOn: '1000' } })
+        exists.mockResolvedValue(true)
+        const mockMethod = jest.fn()
+
+        const result = await wrap(mockMethod)(mockCtx, dbWithEvents, mockBranding, { id: 'req1', params: {} }, 'token')
+
+        expect(result).toEqual({ error: new Status(Severity.ERROR, platform.status.Unauthorized, {}) })
+        expect(mockMethod).not.toHaveBeenCalled()
+        expect(exists).toHaveBeenCalledWith({
+          accountUuid,
+          eventType: AccountEventType.PASSWORD_CHANGED,
+          time: { $gt: 1000 }
+        })
+      })
+
+      test('keeps unstamped tokens (reset, confirm, pre-rollout) valid', async () => {
+        ;(decodeToken as jest.Mock).mockReturnValue({ account: accountUuid, extra: { restoreEmail: 'a@b.c' } })
+        const mockMethod = jest.fn().mockResolvedValue({ data: 'ok' })
+
+        const result = await wrap(mockMethod)(mockCtx, dbWithEvents, mockBranding, { id: 'req1', params: {} }, 'token')
+
+        expect(result).toEqual({ id: 'req1', result: { data: 'ok' } })
+        expect(exists).not.toHaveBeenCalled()
+      })
+
+      test('skips service tokens', async () => {
+        ;(decodeToken as jest.Mock).mockReturnValue({ account: accountUuid, extra: { service: 'github', issuedOn: '1' } })
+        const mockMethod = jest.fn().mockResolvedValue({ data: 'ok' })
+
+        await wrap(mockMethod)(mockCtx, dbWithEvents, mockBranding, { id: 'req1', params: {} }, 'token')
+
+        expect(exists).not.toHaveBeenCalled()
+      })
+
+      test('stamps issuedOn on a returned session token and keeps an existing stamp', () => {
+        ;(generateToken as jest.Mock).mockReturnValue('stamped')
+        ;(decodeToken as jest.Mock).mockReturnValue({ account: accountUuid, workspace: undefined, extra: { admin: 'true' } })
+
+        expect(stampIssuedOn('fresh')).toBe('stamped')
+        expect(generateToken).toHaveBeenCalledWith(
+          accountUuid,
+          undefined,
+          { admin: 'true', issuedOn: expect.stringMatching(/^\d+$/) },
+          undefined,
+          { sub: undefined, exp: undefined, nbf: undefined }
+        )
+        ;(decodeToken as jest.Mock).mockReturnValue({ account: accountUuid, extra: { issuedOn: '5' } })
+        expect(stampIssuedOn('already')).toBe('already')
+      })
+    })
   })
 
   describe('with mocked fetch', () => {
@@ -1142,6 +1242,15 @@ describe('account utils', () => {
     })
 
     describe('sendEmail', () => {
+      test('throws when the mail service rejects the message', async () => {
+        global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 503, statusText: 'Service Unavailable' })
+        const mockCtx = { error: jest.fn(), info: jest.fn() } as unknown as MeasureContext
+
+        await expect(sendEmail({ text: 't', html: 'h', subject: 's', to: 'a@b.c' }, mockCtx)).rejects.toThrow(
+          'Failed to send mail: 503 Service Unavailable'
+        )
+      })
+
       beforeEach(() => {
         ;(getMetadata as jest.Mock).mockImplementation((key) => {
           switch (key) {

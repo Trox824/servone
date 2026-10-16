@@ -50,7 +50,6 @@ import { inventoryId } from '@hcengineering/inventory'
 import { leadId } from '@hcengineering/lead'
 import login, { loginId } from '@hcengineering/login'
 import notification, { notificationId } from '@hcengineering/notification'
-import onboard, { onboardId } from '@hcengineering/onboard'
 import presence, { presenceId } from '@hcengineering/presence'
 import { processId } from '@hcengineering/process'
 import { productsId } from '@hcengineering/products'
@@ -165,6 +164,15 @@ import '@hcengineering/github-assets'
 import { preferenceId } from '@hcengineering/preference'
 import { uiId } from '@hcengineering/ui/src/plugin'
 
+const VIETNAM_TIME_ZONES = ['Asia/Ho_Chi_Minh', 'Asia/Saigon']
+
+function firstVisitLanguage (languages: string[], fallback: string): string {
+  if (!languages.includes('vi')) return fallback
+  const isVietnamese = navigator.languages.some((tag) => tag.toLowerCase().startsWith('vi'))
+  const isInVietnam = VIETNAM_TIME_ZONES.includes(Intl.DateTimeFormat().resolvedOptions().timeZone)
+  return isVietnamese || isInVietnam ? 'vi' : fallback
+}
+
 function configureI18n (): void {
   // Add localization
   addStringsLoader(
@@ -222,7 +230,6 @@ function configureI18n (): void {
     notificationId,
     async (lang: string) => await import(`@hcengineering/notification-assets/lang/${lang}.json`)
   )
-  addStringsLoader(onboardId, async (lang: string) => await import(`@hcengineering/onboard-assets/lang/${lang}.json`))
   addStringsLoader(
     preferenceId,
     async (lang: string) => await import(`@hcengineering/preference-assets/lang/${lang}.json`)
@@ -336,7 +343,7 @@ export async function configurePlatform (onWorkbenchConnect?: () => Promise<void
   console.log('loading configuration', config)
   console.log('loaded branding', myBranding)
 
-  const title = myBranding.title ?? 'Huly Desktop'
+  const title = myBranding.title ?? 'Servone'
   ipcMain.setTitle(title)
 
   configureAnalyticsProviders(config)
@@ -402,7 +409,7 @@ export async function configurePlatform (onWorkbenchConnect?: () => Promise<void
 
   setMetadata(billingPlugin.metadata.BillingURL, config.BILLING_URL ?? '')
   setMetadata(presentation.metadata.PaymentUrl, config.PAYMENT_URL ?? '')
-  setMetadata(presentation.metadata.SignupUrl, config.SIGNUP_URL ?? 'https://huly.io/signup')
+  setMetadata(presentation.metadata.SignupUrl, config.SIGNUP_URL ?? '/login/signup')
 
   setMetadata(support.metadata.SupportLink, myBranding.support?.supportLink ?? supportLink)
   setMetadata(support.metadata.ReportBugLink, myBranding.support?.reportBugLink ?? reportBugLink)
@@ -421,7 +428,6 @@ export async function configurePlatform (onWorkbenchConnect?: () => Promise<void
     new Map([
       [workbenchId, workbench.component.WorkbenchApp],
       [loginId, login.component.LoginApp],
-      [onboardId, onboard.component.OnboardApp],
       [calendarId, calendar.component.ConnectApp],
       [guestId, guest.component.GuestApp],
       [globalProfileRoute, globalProfile.component.GlobalProfileApp]
@@ -433,7 +439,6 @@ export async function configurePlatform (onWorkbenchConnect?: () => Promise<void
 
   addLocation(clientId, async () => await import('@hcengineering/client-resources'))
   addLocation(loginId, async () => await import('@hcengineering/login-resources'))
-  addLocation(onboardId, async () => await import('@hcengineering/onboard-resources'))
   addLocation(workbenchId, async () => await import('@hcengineering/workbench-resources'))
   addLocation(viewId, async () => await import('@hcengineering/view-resources'))
   addLocation(converterId, async () => await import('@hcengineering/converter-resources'))
@@ -500,6 +505,7 @@ export async function configurePlatform (onWorkbenchConnect?: () => Promise<void
   addLocation(surveyId, () => import(/* webpackChunkName: "survey" */ '@hcengineering/survey-resources'))
   addLocation(cardId, () => import(/* webpackChunkName: "card" */ '@hcengineering/card-resources'))
   addLocation(chatId, () => import(/* webpackChunkName: "chat" */ '@hcengineering/chat-resources'))
+  addLocation(mailId, async () => ({ default: async () => ({}) }))
   addLocation(inboxId, () => import(/* webpackChunkName: "inbox" */ '@hcengineering/inbox-resources'))
   addLocation(processId, () => import(/* webpackChunkName: "process" */ '@hcengineering/process-resources'))
   addLocation(achievementId, () => import(/* webpackChunkName: "achievement" */ '@hcengineering/achievement-resources'))
@@ -529,7 +535,7 @@ export async function configurePlatform (onWorkbenchConnect?: () => Promise<void
 
   setMetadata(uiPlugin.metadata.PlatformTitle, title)
   setMetadata(workbench.metadata.PlatformTitle, title)
-  setDefaultLanguage(myBranding.defaultLanguage ?? 'en')
+  setDefaultLanguage(firstVisitLanguage(languages, myBranding.defaultLanguage ?? 'en'))
   setMetadata(workbench.metadata.DefaultApplication, myBranding.defaultApplication ?? 'tracker')
   setMetadata(workbench.metadata.DefaultSpace, myBranding.defaultSpace ?? tracker.project.DefaultProject)
   setMetadata(workbench.metadata.DefaultSpecial, myBranding.defaultSpecial ?? 'issues')

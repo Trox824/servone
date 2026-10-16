@@ -76,6 +76,7 @@ import CardSearchItem from './components/CardSearchItem.svelte'
 import CreateSpace from './components/navigator/CreateSpace.svelte'
 import card from './plugin'
 import { type NavigatorConfig } from './types'
+import { isArchivedType } from './servone-archived'
 
 export async function deleteMasterTag (tag: MasterTag | undefined, onDelete?: () => void): Promise<void> {
   if (tag !== undefined) {
@@ -617,7 +618,8 @@ export function isBaseTypeWithSubtypes (hierarchy: Hierarchy, type: Ref<MasterTa
   return hierarchy.getDescendants(type).some((descendant) => {
     if (descendant === type || hierarchy.isMixin(descendant)) return false
     const descendantClass = hierarchy.getClass(descendant) as MasterTag | undefined
-    return descendantClass?._class === card.class.MasterTag && descendantClass.removed !== true
+    // servone: archived subtypes do not count as creatable.
+    return descendantClass?._class === card.class.MasterTag && descendantClass.removed !== true && !isArchivedType(descendantClass)
   })
 }
 
@@ -628,6 +630,8 @@ export function getFirstCreatableSubtype (hierarchy: Hierarchy, type: Ref<Master
     return (
       descendantClass?._class === card.class.MasterTag &&
       descendantClass.removed !== true &&
+      // servone: never pick an archived subtype for a new card.
+      !isArchivedType(descendantClass) &&
       !isBaseTypeWithSubtypes(hierarchy, descendant as Ref<MasterTag>)
     )
   }) as Ref<MasterTag> | undefined

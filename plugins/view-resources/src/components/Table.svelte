@@ -640,6 +640,8 @@
       position: sticky;
       left: 0;
       height: 2.5rem;
+      // servone: upstream pads only with a check/notify column, leaving "Total" flush against the panel edge.
+      padding-left: 0.75rem;
       &.padding {
         padding-left: 2.5rem;
       }

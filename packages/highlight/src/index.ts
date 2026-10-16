@@ -13,7 +13,8 @@
 // limitations under the License.
 //
 
-import hljs, { type LanguageFn } from 'highlight.js'
+import hljs from 'highlight.js/lib/core'
+import type { LanguageFn } from 'highlight.js'
 import { all } from 'lowlight'
 import { svelte } from './languages/svelte'
 import { vlang } from './languages/vlang'

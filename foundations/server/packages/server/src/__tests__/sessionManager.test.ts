@@ -23,6 +23,7 @@ import {
   type WorkspaceUuid
 } from '@hcengineering/core'
 import type { Token } from '@hcengineering/server-token'
+import platform, { PlatformError, Severity, Status } from '@hcengineering/platform'
 
 // Import the module under test after mocks are set up
 // eslint-disable-next-line import/first
@@ -708,6 +709,146 @@ describe('TSessionManager', () => {
       await sessionManager.forceClose(workspaceId, ignoreSocket)
 
       expect(sessionManager.workspaces.has(workspaceId)).toBe(false)
+    })
+  })
+
+  describe('closeAccount', () => {
+    it('should close only the sockets of the target account', async () => {
+      const workspaceId = 'ws-close-account' as WorkspaceUuid
+      const targetAccount = 'account-target' as AccountUuid
+      const otherAccount = 'account-other' as AccountUuid
+
+      const makeSession = (sessionId: string, account: AccountUuid, socketId: string): any => {
+        const socket = { id: socketId, close: jest.fn() }
+        const entry = {
+          session: {
+            sessionId,
+            getUser: jest.fn().mockReturnValue(account),
+            getUserSocialIds: jest.fn().mockReturnValue([]),
+            getSocialIds: jest.fn().mockReturnValue([]),
+            requests: new Map(),
+            createTime: Date.now()
+          },
+          socket
+        }
+        sessionManager.sessions.set(socketId, entry as any)
+        return entry
+      }
+
+      const targetA = makeSession('s-target-1', targetAccount, 'sock-target-1')
+      const targetB = makeSession('s-target-2', targetAccount, 'sock-target-2')
+      const other = makeSession('s-other', otherAccount, 'sock-other')
+
+      const mockWorkspace = {
+        wsId: { uuid: workspaceId, url: 'close-account-workspace' },
+        sessions: new Map([
+          [targetA.session.sessionId, targetA],
+          [targetB.session.sessionId, targetB],
+          [other.session.sessionId, other]
+        ]),
+        tickHandlers: new Map(),
+        maintenance: false
+      }
+      sessionManager.workspaces.set(workspaceId, mockWorkspace as any)
+
+      await sessionManager.closeAccount(workspaceId, targetAccount)
+
+      expect(targetA.socket.close).toHaveBeenCalled()
+      expect(targetB.socket.close).toHaveBeenCalled()
+      expect(other.socket.close).not.toHaveBeenCalled()
+      expect(mockWorkspace.sessions.has(other.session.sessionId)).toBe(true)
+      expect(mockWorkspace.sessions.size).toBe(1)
+      expect(sessionManager.workspaces.has(workspaceId)).toBe(true)
+    })
+
+    it('should skip the ignored socket', async () => {
+      const workspaceId = 'ws-close-account-ignore' as WorkspaceUuid
+      const account = 'account-ignored' as AccountUuid
+      const socket = { id: 'sock-ignored', close: jest.fn() }
+      const entry = {
+        session: {
+          sessionId: 's-ignored',
+          getUser: jest.fn().mockReturnValue(account),
+          getUserSocialIds: jest.fn().mockReturnValue([]),
+          getSocialIds: jest.fn().mockReturnValue([]),
+          requests: new Map(),
+          createTime: Date.now()
+        },
+        socket
+      }
+      sessionManager.sessions.set(socket.id, entry as any)
+      sessionManager.workspaces.set(workspaceId, {
+        wsId: { uuid: workspaceId, url: 'ws' },
+        sessions: new Map([[entry.session.sessionId, entry]]),
+        tickHandlers: new Map(),
+        maintenance: false
+      } as any)
+
+      await sessionManager.closeAccount(workspaceId, account, socket as any)
+
+      expect(socket.close).not.toHaveBeenCalled()
+    })
+
+    it('should do nothing for unknown workspace', async () => {
+      await expect(
+        sessionManager.closeAccount('ws-missing' as WorkspaceUuid, 'account-x' as AccountUuid)
+      ).resolves.toBeUndefined()
+    })
+  })
+
+  describe('workspace info cache', () => {
+    const wsId = 'ws-cache' as WorkspaceUuid
+    const fakeSocket = (): any => ({ id: 'sock-cache', send: jest.fn(), close: jest.fn(), checkState: jest.fn() })
+    const fakeWorkspaceInfo: any = {
+      url: 'ws-cache-url',
+      mode: 'active',
+      versionMajor: 0,
+      versionMinor: 0,
+      versionPatch: 0,
+      processingProgress: 0
+    }
+    const forbidden = (): PlatformError => new PlatformError(new Status(Severity.ERROR, platform.status.Forbidden, {}))
+
+    beforeEach(() => {
+      jest.spyOn(sessionManager, 'getWorkspace').mockResolvedValue({
+        workspace: {
+          wsId: { uuid: wsId, url: 'ws-cache-url' },
+          sessions: new Map(),
+          workspaceInitCompleted: false,
+          maintenance: false
+        } as any,
+        resp: undefined
+      })
+    })
+
+    it('reuses workspace info warmed by a system token', async () => {
+      const getInfo = jest.spyOn(sessionManager, 'getWorkspaceInfo').mockResolvedValue(fakeWorkspaceInfo)
+      const systemToken = { account: systemAccountUuid, workspace: wsId } as any
+
+      await sessionManager.addSession(mockContext, fakeSocket(), systemToken, 'raw-system', undefined)
+      await sessionManager.addSession(mockContext, fakeSocket(), systemToken, 'raw-system', undefined)
+
+      expect(getInfo).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not let a removed member in on info warmed by an admin token', async () => {
+      const getInfo = jest
+        .spyOn(sessionManager, 'getWorkspaceInfo')
+        .mockResolvedValueOnce(fakeWorkspaceInfo)
+        .mockRejectedValueOnce(forbidden())
+      jest.spyOn(sessionManager, 'getLoginWithWorkspaceInfo').mockResolvedValue({
+        account: 'account-removed',
+        workspaces: {},
+        socialIds: [{ _id: 'social-removed', type: 'huly', value: 'removed', isDeleted: false }]
+      } as any)
+
+      const adminToken = { account: 'account-admin', workspace: wsId, extra: { admin: 'true' } } as any
+      await sessionManager.addSession(mockContext, fakeSocket(), adminToken, 'raw-admin', undefined)
+      const removedToken = { account: 'account-removed', workspace: wsId } as any
+      const removedResult = await sessionManager.addSession(mockContext, fakeSocket(), removedToken, 'raw-removed', undefined)
+
+      expect(getInfo).toHaveBeenCalledTimes(2)
+      expect(removedResult.error).toBeDefined()
     })
   })
 

@@ -20,7 +20,8 @@
 
   export let currentSpace: Ref<Project>
 
-  const query: DocumentQuery<IssueTemplate> = { space: currentSpace }
+  // servone: forms (templates with questions) have their own Forms page (packages/servone-ui/.../tracker-resources/forms).
+  const query: DocumentQuery<IssueTemplate> = { space: currentSpace, servoneForm: { $exists: false } }
 </script>
 
 <IssueTemplatesView {query} space={currentSpace} title={tracker.string.IssueTemplates} />

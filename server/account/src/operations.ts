@@ -87,6 +87,7 @@ import {
   EndpointKind,
   generatePassword,
   getAccount,
+  getAllTransactors,
   getEmailSocialId,
   getEndpoint,
   getEndpointInfo,
@@ -135,6 +136,8 @@ import {
   generateTotpSecret,
   verifyTotpCode,
   getTotpUrl,
+  SUPPORTED_LOCALES,
+  withRecipientLanguage,
   reportInvalidToken,
   tokenFingerprint
 } from './utils'
@@ -781,7 +784,8 @@ export async function sendInvite (
   verifyAllowedRole(callerRole, role, extra)
 
   const inviteLink = await createInviteLink(ctx, db, branding, token, params)
-  const inviteEmail = await getInviteEmail(branding, email, inviteLink, workspace, expHours ?? 48, false)
+  const recipientBranding = await withRecipientLanguage(db, branding, email) // servone:
+  const inviteEmail = await getInviteEmail(recipientBranding, email, inviteLink, workspace, expHours ?? 48, false)
 
   await sendEmail(inviteEmail, ctx)
 
@@ -1038,7 +1042,8 @@ export async function resendInvite (
   const front = getFrontUrl(branding)
   const link = concatLink(front, `/login/join?inviteId=${inviteId}`)
 
-  const inviteEmail = await getInviteEmail(branding, email, link, workspace, expHours, true)
+  const recipientBranding = await withRecipientLanguage(db, branding, email) // servone:
+  const inviteEmail = await getInviteEmail(recipientBranding, email, link, workspace, expHours, true)
   await sendEmail(inviteEmail, ctx)
 
   ctx.info('Invite has been resent', {
@@ -1112,6 +1117,10 @@ export async function getInviteInfo (
   if (invite == null) {
     ctx.error('Invite not found in getInviteInfo', { inviteId })
     return { workspaceName: null }
+  }
+
+  if (invite.remainingUses === 0 || (invite.expiresOn > 0 && invite.expiresOn < Date.now())) {
+    throw new PlatformError(new Status(Severity.ERROR, platform.status.ExpiredLink, {}))
   }
 
   const workspace = await getWorkspaceById(db, invite.workspaceUuid)
@@ -1760,7 +1769,7 @@ export async function leaveWorkspace (
 
   if (account === targetAccount && initiatorRole === AccountRole.Owner) {
     const members = await db.getWorkspaceMembers(workspace)
-    const owners = members.filter((m) => m.role === AccountRole.Owner)
+    const owners = members.filter((m) => m.role === AccountRole.Owner && !m.disabled)
 
     if (owners.length === 1) {
       ctx.warn('Owner cannot remove themselves as the last owner of the workspace', {
@@ -1771,7 +1780,12 @@ export async function leaveWorkspace (
     }
   }
 
-  await db.unassignWorkspace(targetAccount, workspace)
+  // Kick keeps the row so a re-invite is refused and reactivation can restore the role.
+  if (account === targetAccount) {
+    await db.unassignWorkspace(targetAccount, workspace)
+  } else {
+    await disableWorkspaceMember(ctx, db, workspace, targetAccount)
+  }
   ctx.info('Account removed from workspace', { targetAccount, workspace })
 
   if (account === targetAccount) {
@@ -1788,6 +1802,100 @@ export async function leaveWorkspace (
   }
 
   return null
+}
+
+export async function deactivateWorkspaceMember (
+  ctx: MeasureContext,
+  db: AccountDB,
+  branding: Branding | null,
+  token: string,
+  params: { account: AccountUuid }
+): Promise<void> {
+  await setWorkspaceMemberDisabled(ctx, db, token, params.account, true)
+}
+
+export async function reactivateWorkspaceMember (
+  ctx: MeasureContext,
+  db: AccountDB,
+  branding: Branding | null,
+  token: string,
+  params: { account: AccountUuid }
+): Promise<void> {
+  await setWorkspaceMemberDisabled(ctx, db, token, params.account, false)
+}
+
+async function setWorkspaceMemberDisabled (
+  ctx: MeasureContext,
+  db: AccountDB,
+  token: string,
+  targetAccount: AccountUuid,
+  disabled: boolean
+): Promise<void> {
+  if (targetAccount == null || targetAccount === '') {
+    throw new PlatformError(new Status(Severity.ERROR, platform.status.BadRequest, {}))
+  }
+
+  const { account, workspace } = decodeTokenVerbose(ctx, token)
+  const callerRole = account === systemAccountUuid ? AccountRole.Owner : await db.getWorkspaceRole(account, workspace)
+
+  if (callerRole == null || getRolePower(callerRole) < getRolePower(AccountRole.Maintainer)) {
+    throw new PlatformError(new Status(Severity.ERROR, platform.status.Forbidden, {}))
+  }
+
+  if (targetAccount === account) {
+    throw new PlatformError(new Status(Severity.ERROR, platform.status.Forbidden, {}))
+  }
+
+  const members = await db.getWorkspaceMembers(workspace)
+  const target = members.find((m) => m.person === targetAccount)
+
+  if (target == null || getRolePower(callerRole) < getRolePower(target.role)) {
+    throw new PlatformError(new Status(Severity.ERROR, platform.status.Forbidden, {}))
+  }
+
+  if (target.disabled === disabled) return
+
+  const activeOwners = members.filter((m) => m.role === AccountRole.Owner && !m.disabled)
+  if (disabled && target.role === AccountRole.Owner && activeOwners.length === 1) {
+    throw new PlatformError(new Status(Severity.ERROR, platform.status.Forbidden, {}))
+  }
+
+  if (disabled) {
+    await disableWorkspaceMember(ctx, db, workspace, targetAccount)
+  } else {
+    await db.setWorkspaceMemberDisabled(targetAccount, workspace, false)
+  }
+  ctx.info('Workspace member disabled state changed', { targetAccount, workspace, disabled })
+}
+
+async function disableWorkspaceMember (
+  ctx: MeasureContext,
+  db: AccountDB,
+  workspace: WorkspaceUuid,
+  targetAccount: AccountUuid
+): Promise<void> {
+  await db.setWorkspaceMemberDisabled(targetAccount, workspace, true)
+  // API tokens are checked only for revocation, not membership, so they are revoked here.
+  await db.apiToken.update({ accountUuid: targetAccount, workspaceUuid: workspace, revoked: false }, { revoked: true })
+  await forceCloseWorkspaceSessions(ctx, workspace)
+}
+
+// Drops live sockets so a deactivated member cannot keep working on an open connection.
+async function forceCloseWorkspaceSessions (ctx: MeasureContext, workspace: WorkspaceUuid): Promise<void> {
+  const token = generateToken(systemAccountUuid, workspace, { service: 'account', admin: 'true' })
+
+  for (const endpoint of getAllTransactors(EndpointKind.Internal)) {
+    const httpEndpoint = endpoint.replaceAll('wss://', 'https://').replace('ws://', 'http://')
+    const response = await fetch(
+      `${httpEndpoint}/api/v1/manage?token=${token}&operation=force-close&wsId=${workspace}`,
+      { method: 'PUT' }
+    )
+
+    if (!response.ok) {
+      ctx.error('Transactor failed to close workspace sessions', { endpoint, workspace, status: response.status })
+      throw new PlatformError(new Status(Severity.ERROR, platform.status.InternalServerError, {}))
+    }
+  }
 }
 
 export async function changeUsername (
@@ -1883,7 +1991,8 @@ export async function generate2faSecret (
   }
 
   const secret = generateTotpSecret()
-  const app = branding?.title ?? getMetadata(accountPlugin.metadata.ProductName) ?? 'Huly'
+  // servone: product-name fallback when neither branding nor PRODUCT_NAME is set.
+  const app = branding?.title ?? getMetadata(accountPlugin.metadata.ProductName) ?? 'Servone'
   const url = getTotpUrl(emailSocialId.value, app, secret)
 
   return { secret, url }
@@ -3235,6 +3344,20 @@ export async function mergeSpecifiedPersons (
   await doMergePersons(db, primaryPerson, secondaryPerson)
 }
 
+async function setMyLocale (
+  ctx: MeasureContext,
+  db: AccountDB,
+  branding: Branding | null,
+  token: string,
+  params: { locale: string }
+): Promise<void> {
+  const { account } = decodeTokenVerbose(ctx, token)
+  if (!SUPPORTED_LOCALES.includes(params.locale)) { // servone:
+    throw new PlatformError(new Status(Severity.ERROR, platform.status.BadRequest, { field: 'locale' }))
+  }
+  await db.account.update({ uuid: account }, { locale: params.locale })
+}
+
 async function setMyProfile (
   ctx: MeasureContext,
   db: AccountDB,
@@ -3616,6 +3739,8 @@ export type AccountMethods =
   | 'requestPasswordSetup'
   | 'restorePassword'
   | 'leaveWorkspace'
+  | 'deactivateWorkspaceMember'
+  | 'reactivateWorkspaceMember'
   | 'changeUsername'
   | 'updateWorkspaceName'
   | 'deleteWorkspace'
@@ -3655,6 +3780,7 @@ export type AccountMethods =
   | 'canMergeSpecifiedPersons'
   | 'mergeSpecifiedPersons'
   | 'setMyProfile'
+  | 'setMyLocale'
   | 'getUserProfile'
   | 'getSubscriptions'
   | 'getSubscriptionById'
@@ -3702,6 +3828,8 @@ export function getMethods (hasSignUp: boolean = true): Partial<Record<AccountMe
     requestPasswordSetup: wrap(requestPasswordSetup),
     restorePassword: wrap(restorePassword),
     leaveWorkspace: wrap(leaveWorkspace),
+    deactivateWorkspaceMember: wrap(deactivateWorkspaceMember),
+    reactivateWorkspaceMember: wrap(reactivateWorkspaceMember),
     changeUsername: wrap(changeUsername),
     updateWorkspaceName: wrap(updateWorkspaceName),
     deleteWorkspace: wrap(deleteWorkspace),
@@ -3727,6 +3855,7 @@ export function getMethods (hasSignUp: boolean = true): Partial<Record<AccountMe
     canMergeSpecifiedPersons: wrap(canMergeSpecifiedPersons),
     mergeSpecifiedPersons: wrap(mergeSpecifiedPersons),
     setMyProfile: wrap(setMyProfile),
+    setMyLocale: wrap(setMyLocale),
     getUserProfile: wrap(getUserProfile),
     getSubscriptions: wrap(getSubscriptions),
     getSubscriptionById: wrap(getSubscriptionById),

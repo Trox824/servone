@@ -34,6 +34,7 @@
   import { ObjectSearchCategory, ObjectSearchResult } from '../types'
   import { getClient } from '../utils'
   import { hasResource, reduceCalls } from '..'
+  import { HIDDEN_SEARCH_CATEGORIES } from '../search'
 
   export let query: string = ''
   export let label: IntlString | undefined = undefined
@@ -58,7 +59,7 @@
   void getClient()
     .findAll(presentation.class.ObjectSearchCategory, categoryQuery)
     .then((r) => {
-      categories = r.filter((it) => hasResource(it.query))
+      categories = r.filter((it) => hasResource(it.query) && !HIDDEN_SEARCH_CATEGORIES.has(it._id))
       category = categories[0]
     })
 

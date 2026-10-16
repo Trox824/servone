@@ -1,7 +1,7 @@
 import { type Doc, type DocumentUpdate, type Ref, type RelatedDocument, type TxOperations } from '@hcengineering/core'
-import { getMetadata } from '@hcengineering/platform'
+import { getMetadata, type Metadata } from '@hcengineering/platform'
 import presentation, { getClient } from '@hcengineering/presentation'
-import { trackerId, type Component, type Issue, type Milestone } from '@hcengineering/tracker'
+import { trackerId, type Component, type Issue, type Milestone, type Project } from '@hcengineering/tracker'
 import { getCurrentResolvedLocation, getPanelURI, type Location, type ResolvedLocation } from '@hcengineering/ui'
 import { accessDeniedStore } from '@hcengineering/view-resources'
 import { workbenchId } from '@hcengineering/workbench'
@@ -70,6 +70,11 @@ export function generateIssueShortLink (issueId: string): string {
   return `${protocolAndHost}/${workbenchId}/${location.path[1]}/${trackerId}/${issueId}`
 }
 
+// servone: set in packages/servone-ui/src/plugins/tracker-resources/workflows/install.ts.
+export const issueAppPath = 'servone:metadata:IssueAppPath' as Metadata<
+(project: Project) => [alias: string, special: string] | undefined
+>
+
 export async function generateIssueLocation (loc: Location, issueId: string): Promise<ResolvedLocation | undefined> {
   const client = getClient()
   const issue = await client.findOne(tracker.class.Issue, { identifier: issueId }, { showArchived: true })
@@ -80,13 +85,19 @@ export async function generateIssueLocation (loc: Location, issueId: string): Pr
   }
   const appComponent = loc.path[0] ?? ''
   const workspace = loc.path[1] ?? ''
+  // servone: Workflow project items open in Quy trình.
+  const appPath = getMetadata(issueAppPath)
+  const project = appPath === undefined ? undefined : await client.findOne(tracker.class.Project, { _id: issue.space })
+  const workflowPath = project !== undefined ? appPath?.(project) : undefined
+  const [app, special] = workflowPath ?? [trackerId, 'issues']
   return {
     loc: {
-      path: [appComponent, workspace],
+      // servone: pin the workflow page, or closing the item lands on a bare /quy-trinh/<space> with nothing to render.
+      path: workflowPath === undefined ? [appComponent, workspace] : [appComponent, workspace, app, issue.space, special],
       fragment: generateIssuePanelUri(issue)
     },
     defaultLocation: {
-      path: [appComponent, workspace, trackerId, issue.space, 'issues'],
+      path: [appComponent, workspace, app, issue.space, special],
       fragment: generateIssuePanelUri(issue)
     }
   }

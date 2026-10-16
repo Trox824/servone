@@ -226,9 +226,6 @@
               <div class="username">
                 <ComponentExtensions extension={activity.extension.ActivityEmployeePresenter} props={{ person }} />
               </div>
-              {#if socialId !== undefined}
-                ({socialId.type})
-              {/if}
             {:else}
               <div class="strong">
                 <Label label={core.string.System} />

@@ -32,6 +32,15 @@ export function getClientTimezone (): string | undefined {
   }
 }
 
+// servone: the UI language the user picked, so account emails match it before an account exists
+export function getClientLocale (): string | undefined {
+  try {
+    return localStorage.getItem('lang') ?? undefined
+  } catch {
+    return undefined
+  }
+}
+
 const connectionErrorCodes = ['ECONNRESET', 'ECONNREFUSED', 'ENOTFOUND']
 const networkErrorNames = ['NetworkError', 'TypeError', 'FetchError']
 const browserFetchErrorMessages = ['failed to fetch', 'networkerror', 'network request failed']

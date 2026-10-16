@@ -21,6 +21,7 @@ import core, {
   Data,
   Doc,
   DocumentQuery,
+  DocumentUpdate,
   FindOptions,
   FindResult,
   getDiffUpdate,
@@ -326,6 +327,12 @@ async function onEventMixin (ctx: TxMixin<Event, Event>, control: TriggerControl
   return res
 }
 
+// servone: reminders belong to each copy's owner, as in Google Calendar; an organizer edit must not overwrite a guest's.
+export function sharedEventUpdate (ops: DocumentUpdate<Event>): DocumentUpdate<Event> {
+  const { visibility, user, reminders, ...shared } = ops
+  return shared
+}
+
 async function onEventUpdate (ctx: TxUpdateDoc<Event>, control: TriggerControl): Promise<Tx[]> {
   const ops = ctx.operations
   const { visibility, user, ...otherOps } = ops
@@ -343,6 +350,7 @@ async function onEventUpdate (ctx: TxUpdateDoc<Event>, control: TriggerControl):
   if (event.access !== 'owner') return []
   const events = await control.findAll(control.ctx, calendar.class.Event, { eventId: event.eventId })
   const res: Tx[] = []
+  const sharedOps = sharedEventUpdate(ops)
   const newParticipants = new Set<Ref<Person>>(event.participants as Ref<Person>[])
   const calendars = await control.findAll(control.ctx, calendar.class.Calendar, { hidden: false })
   for (const ev of events) {
@@ -360,7 +368,7 @@ async function onEventUpdate (ctx: TxUpdateDoc<Event>, control: TriggerControl):
       res.push(outerTx)
     } else {
       newParticipants.delete(person)
-      const update = getDiffUpdate(ev, otherOps)
+      const update = getDiffUpdate(ev, sharedOps)
       if (Object.keys(update).length !== 0) {
         const innerTx = control.txFactory.createTxUpdateDoc(ev._class, ev.space, ev._id, update)
         const outerTx = control.txFactory.createTxCollectionCUD(

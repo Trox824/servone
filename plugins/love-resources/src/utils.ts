@@ -43,7 +43,7 @@ import view from '@hcengineering/view'
 import { getObjectLinkFragment } from '@hcengineering/view-resources'
 import { type Widget, type WidgetTab } from '@hcengineering/workbench'
 import { openWidget, openWidgetTab, sidebarStore, updateWidgetState } from '@hcengineering/workbench-resources'
-import { isKrispNoiseFilterSupported, KrispNoiseFilter } from '@livekit/krisp-noise-filter'
+import type * as Krisp from '@livekit/krisp-noise-filter'
 import { BackgroundBlur, type BackgroundOptions, type ProcessorWrapper } from '@livekit/track-processors'
 import {
   LocalAudioTrack,
@@ -80,7 +80,14 @@ export const isRecordingAvailable = writable<boolean>(false)
 export const isFullScreen = writable<boolean>(false)
 export const isShareWithSound = writable<boolean>(false)
 
-export const krispProcessor = KrispNoiseFilter()
+export const loadKrisp = async (): Promise<typeof Krisp> =>
+  await import('@livekit/krisp-noise-filter')
+let krispProcessor: Krisp.KrispNoiseFilterProcessor | undefined
+
+export async function setNoiseCancellation (enabled: boolean): Promise<void> {
+  await krispProcessor?.setEnabled(enabled)
+}
+
 export let blurProcessor: ProcessorWrapper<BackgroundOptions> | undefined
 let localVideo: LocalVideoTrack | undefined
 
@@ -92,13 +99,15 @@ try {
 
 async function setKrispProcessor (pub: LocalTrackPublication): Promise<void> {
   if (pub.track instanceof LocalAudioTrack) {
-    if (!isKrispNoiseFilterSupported()) {
-      console.warn('enhanced noise filter is currently not supported on this browser')
-      return
-    }
     try {
+      const krisp = await loadKrisp()
+      if (!krisp.isKrispNoiseFilterSupported()) {
+        console.warn('enhanced noise filter is currently not supported on this browser')
+        return
+      }
       // once instantiated the filter will begin initializing and will download additional resources
       console.log('enabling LiveKit enhanced noise filter')
+      krispProcessor ??= krisp.KrispNoiseFilter()
       await pub.track.setProcessor(krispProcessor)
       await krispProcessor.setEnabled($myPreferences?.noiseCancellation ?? true)
     } catch (err: any) {
@@ -225,16 +234,12 @@ function parseMetadata (metadata: string | undefined): RoomMetadata {
 }
 
 export function closeMeetingMinutes (): void {
-  const loc = getCurrentLocation()
+  const meetingMinutes = get(currentMeetingMinutes)
+  const panel = get(panelstore).panel
+  const { _id } = panel ?? {}
 
-  if (loc.path[2] === loveId) {
-    const meetingMinutes = get(currentMeetingMinutes)
-    const panel = get(panelstore).panel
-    const { _id } = panel ?? {}
-
-    if (_id !== undefined && meetingMinutes !== undefined && _id === meetingMinutes._id) {
-      closePanel()
-    }
+  if (_id !== undefined && meetingMinutes !== undefined && _id === meetingMinutes._id) {
+    closePanel()
   }
   currentMeetingMinutes.set(undefined)
 }
@@ -261,10 +266,8 @@ export async function navigateToOfficeDoc (object: Doc): Promise<void> {
   const panelComponent = hierarchy.classHierarchyMixin(object._class, view.mixin.ObjectPanel)
   const comp = panelComponent?.component ?? view.component.EditDoc
   const loc = await getObjectLinkFragment(hierarchy, object, {}, comp)
-  loc.path[2] = loveId
-  loc.path.length = 3
-  loc.query = undefined
-  navigate(loc)
+  // Servone: open the panel over the current page; the Meetings app is hidden, so closing must not land there.
+  navigate({ ...getCurrentLocation(), fragment: loc.fragment })
 }
 
 export async function navigateToMeetingMinutes (room: Room): Promise<void> {

@@ -224,7 +224,8 @@ export async function getContentByTemplate (
   }
 
   const link = await getNotificationLink(control, doc, message?._id)
-  const app = control.branding?.title ?? 'Huly'
+  // servone: "View in <app>" fallback when the transactor has no branding.
+  const app = control.branding?.title ?? 'Servone'
   const linkText = await translate(notification.string.ViewIn, { app })
 
   params.link = `<a href='${link}'>${linkText}</a>`

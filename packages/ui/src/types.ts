@@ -14,7 +14,7 @@
 //
 import type { AccountRole, Blob, Permission, Ref, Timestamp, TypedSpace } from '@hcengineering/core'
 import type { Asset, IntlString, Resource } from '@hcengineering/platform'
-import { type ComponentType } from 'svelte'
+import { type Component as Svelte5Component, type ComponentType } from 'svelte'
 
 /**
  * Describe a browser URI location parsed to path, query and fragment.
@@ -54,7 +54,8 @@ export function areLocationsEqual (loc1: Location, loc2: Location): boolean {
   return keys1.findIndex((k) => loc1.query?.[k] !== loc2.query?.[k]) < 0
 }
 
-export type AnySvelteComponent = ComponentType
+// Svelte 5 types components as `Component` (not the legacy `ComponentType` class); accept both.
+export type AnySvelteComponent = ComponentType | Svelte5Component<any, any, any>
 export type Component<C extends AnySvelteComponent> = Resource<C>
 export type AnyComponent = Resource<AnySvelteComponent>
 
@@ -389,7 +390,7 @@ export interface DeviceOptions {
   docHeight: number
   isPortrait: boolean
   isMobile: boolean
-  navigator: { visible: boolean, float: boolean, direction: 'vertical' | 'horizontal' }
+  navigator: { visible: boolean, available: boolean, float: boolean, direction: 'vertical' | 'horizontal' }
   fontSize: number
   size: WidthType | null
   sizes: Record<WidthType, boolean>

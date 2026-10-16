@@ -1,0 +1,19 @@
+{
+  "string": {
+    "Channel": "Kênh",
+    "Channels": "Kênh",
+    "Chat": "Trò chuyện",
+    "Description": "Mô tả",
+    "Loading": "Đang tải...",
+    "MessageIn": "Nhắn tin tới #{title}",
+    "Thread": "Chuỗi thảo luận",
+    "Threads": "Chuỗi thảo luận",
+    "Title": "Tiêu đề",
+    "All": "Tất cả cập nhật",
+    "Inbox": "Hộp thư đến",
+    "ReactedToYourMessage": "đã bày tỏ cảm xúc về tin nhắn của bạn",
+    "ClearAll": "Xóa tất cả",
+    "InboxIsClear": "Hộp thư đến trống",
+    "YouDontHaveAnyNewMessages": "Bạn không có tin nhắn mới"
+  }
+}

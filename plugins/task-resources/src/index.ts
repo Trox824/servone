@@ -26,6 +26,7 @@ import {
   type TxOperations
 } from '@hcengineering/core'
 import { type IntlString, type Resources } from '@hcengineering/platform'
+import { typesOfQueriedSpaces } from './queriedSpaces'
 import { createQuery, onClient } from '@hcengineering/presentation'
 import task, {
   getStatusIndex,
@@ -152,7 +153,8 @@ export async function getAllStates (
   attr: Attribute<Status>,
   filterDone: boolean = true
 ): Promise<any[]> {
-  const joinedProjectsTypes = get(typesOfJoinedProjectsStore) ?? []
+  // servone: only the queried spaces' types; every joined type put another project's statuses (e.g. Approvals) on a Scrum board.
+  const joinedProjectsTypes = typesOfQueriedSpaces(query?.space, get(joinedProjectsStore) ?? [], get(typesOfJoinedProjectsStore) ?? [])
   const typeId = get(selectedTypeStore) ?? (joinedProjectsTypes.length === 1 ? joinedProjectsTypes[0] : undefined)
   const type = typeId !== undefined ? get(typeStore).get(typeId) : undefined
   const $taskType = get(taskTypeStore)

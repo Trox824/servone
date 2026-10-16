@@ -135,65 +135,16 @@ export async function connect (title: string): Promise<Client | undefined> {
   setMetadata(presentation.metadata.Endpoint, workspaceLoginInfo.endpoint)
 
   const fetchWorkspace = await getResource(login.function.FetchWorkspace)
-
-  let workspace: WorkspaceInfoWithStatus | undefined
-
-  while (true) {
-    const fetchResult = await ctx.with('fetch-workspace', {}, async () => await fetchWorkspace())
-
-    if (!fetchResult[2]) {
+  const fetchWorkspaceInfo = async (): Promise<WorkspaceInfoWithStatus | null | undefined> => {
+    while (true) {
+      const fetchResult = await ctx.with('fetch-workspace', {}, async () => await fetchWorkspace())
+      if (fetchResult[2]) return fetchResult[1]
       // Connection error happen, wait and retry
       await new Promise((resolve) => setTimeout(resolve, 1000))
-      continue
-    }
-
-    workspace = fetchResult[1]
-    if (workspace == null) {
-      // something went wrong, workspace not exist, redirect to login
-      console.error(
-        `Error fetching workspace ${wsUrl}. It might no longer exist or be inaccessible. Please try to log in again.`
-      )
-      navigate({
-        path: [loginId]
-      })
-      return
-    }
-    break
-  }
-
-  setMetadata(presentation.metadata.WorkspaceDataId, workspace.dataId)
-
-  if (isWorkspaceCreating(workspace.mode)) {
-    while (true) {
-      if (wsUrl !== getCurrentLocation().path[1]) return
-
-      workspaceCreating.set(workspace.processingProgress ?? 0)
-      const fetchResult = await ctx.with('fetch-workspace', {}, async () => await fetchWorkspace())
-      if (!fetchResult[2]) {
-        // Connection error happen, wait and retry
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-        continue
-      }
-      workspace = fetchResult[1]
-
-      if (workspace == null) {
-        // something went wrong, workspace not exist, redirect to login
-        navigate({
-          path: [loginId]
-        })
-        return
-      }
-
-      workspaceCreating.set(workspace.processingProgress ?? 0)
-
-      if (!isWorkspaceCreating(workspace.mode)) {
-        workspaceCreating.set(-1)
-        break
-      }
-
-      await new Promise<void>((resolve) => setTimeout(resolve, 1000))
     }
   }
+  const workspacePromise = fetchWorkspaceInfo()
+  setMetadata(presentation.metadata.WorkspaceDataId, workspaceLoginInfo.workspaceDataId)
 
   setPresentationCookie(token, workspaceLoginInfo.workspace)
   setMetadataLocalStorage(login.metadata.LoginEndpoint, workspaceLoginInfo?.endpoint)
@@ -229,9 +180,17 @@ export async function connect (title: string): Promise<Client | undefined> {
   }
   _token = token
 
+  // TODO: should we take the function from some resource like fetchWorkspace/selectWorkspace
+  // to remove account client dependency?
+  const accountsUrl = getMetadata(login.metadata.AccountsUrl)
+  const socialIdsPromise = getAccountClient(accountsUrl, token).getSocialIds(true)
+  const globalPersonPromise = workspaceLoginInfo.role !== AccountRole.Admin ? getGlobalPerson() : undefined
+  void socialIdsPromise.catch(() => {})
+  void globalPersonPromise?.catch(() => {})
+
   const clientFactory = await getResource(client.function.GetClient)
   let version: Version | undefined
-  const newClient = await ctx.with(
+  const newClientPromise = ctx.with(
     'create-client',
     {},
     async (ctx) =>
@@ -451,13 +410,66 @@ export async function connect (title: string): Promise<Client | undefined> {
         }
       })
   )
+  void newClientPromise.catch(() => {})
 
+  let workspace = await workspacePromise
+  if (workspace == null || isWorkspaceCreating(workspace.mode)) {
+    void newClientPromise.then(async (earlyClient) => {
+      await earlyClient.close()
+    })
+    if (workspace == null) {
+      // something went wrong, workspace not exist, redirect to login
+      console.error(
+        `Error fetching workspace ${wsUrl}. It might no longer exist or be inaccessible. Please try to log in again.`
+      )
+      navigate({
+        path: [loginId]
+      })
+      return
+    }
+    while (true) {
+      if (wsUrl !== getCurrentLocation().path[1]) return
+
+      workspaceCreating.set(workspace.processingProgress ?? 0)
+      const fetchResult = await ctx.with('fetch-workspace', {}, async () => await fetchWorkspace())
+      if (!fetchResult[2]) {
+        // Connection error happen, wait and retry
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        continue
+      }
+      workspace = fetchResult[1]
+
+      if (workspace == null) {
+        // something went wrong, workspace not exist, redirect to login
+        navigate({
+          path: [loginId]
+        })
+        return
+      }
+
+      workspaceCreating.set(workspace.processingProgress ?? 0)
+
+      if (!isWorkspaceCreating(workspace.mode)) {
+        workspaceCreating.set(-1)
+        break
+      }
+
+      await new Promise<void>((resolve) => setTimeout(resolve, 1000))
+    }
+    return await connect(title)
+  }
+  setMetadata(presentation.metadata.WorkspaceDataId, workspace.dataId)
+
+  const newClient = await newClientPromise
   _client = newClient
+  const versionPromise = ctx.with(
+    'find-model-version',
+    {},
+    async () => await newClient.findOne<Version>(core.class.Version, {})
+  )
+  void versionPromise.catch(() => {})
 
-  // TODO: should we take the function from some resource like fetchWorkspace/selectWorkspace
-  // to remove account client dependency?
-  const accountsUrl = getMetadata(login.metadata.AccountsUrl)
-  const socialIds: SocialId[] = await getAccountClient(accountsUrl, token).getSocialIds(true)
+  const socialIds: SocialId[] = await socialIdsPromise
 
   const me: Account = {
     uuid: account,
@@ -469,7 +481,7 @@ export async function connect (title: string): Promise<Client | undefined> {
 
   // Ensure employee and social identifiers
   if (workspaceLoginInfo.role !== AccountRole.Admin) {
-    const employee = await ensureEmployee(ctx, me, newClient, socialIds, getGlobalPerson)
+    const employee = await ensureEmployee(ctx, me, newClient, socialIds, async () => await globalPersonPromise)
 
     if (employee == null) {
       console.log('Failed to ensure employee')
@@ -535,11 +547,7 @@ export async function connect (title: string): Promise<Client | undefined> {
   }
 
   try {
-    version = await ctx.with(
-      'find-model-version',
-      {},
-      async () => await newClient.findOne<Version>(core.class.Version, {})
-    )
+    version = await versionPromise
     console.log('Model version', version)
 
     const requiredVersion = getMetadata(presentation.metadata.ModelVersion)

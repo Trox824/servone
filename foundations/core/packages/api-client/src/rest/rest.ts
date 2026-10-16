@@ -122,7 +122,8 @@ export class RestClientImpl implements RestClient {
       throw new PlatformError(result.error)
     }
 
-    if (result.lookupMap !== undefined) {
+    // servone: transactors send `lookupMap: null` with $lookup already embedded (e.g. IssueStatus.category).
+    if (result.lookupMap != null) {
       // We need to extract lookup map to document lookups
       for (const d of result) {
         if (d.$lookup !== undefined) {

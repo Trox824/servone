@@ -52,7 +52,8 @@
   }
 </script>
 
-{#if node}
+<!-- servone: hidden per-member mentions an @team mention expands to (servone-ui lib/team-mentions.ts) -->
+{#if node && node.attrs?.servoneTeam == null}
   {@const attrs = node.attrs ?? {}}
   {@const nodes = node.content ?? []}
 

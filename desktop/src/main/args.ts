@@ -16,10 +16,10 @@
 import { OptionValues, program } from 'commander'
 
 program
-  .name('Huly')
+  .name('Servone')
   .allowUnknownOption()
   .allowExcessArguments(true)
-  .option('-s, --server <url>', 'Remote server URL (front). E.g. https://huly.app')
+  .option('-s, --server <url>', 'Remote server URL (front). E.g. https://platform.servone.app')
 
 let opts: OptionValues | null = null
 

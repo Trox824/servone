@@ -23,6 +23,7 @@ import {
   generateId,
   platformNow,
   systemAccountUuid,
+  type AccountUuid,
   type MeasureContext,
   type Tx,
   type WorkspaceIds,
@@ -300,6 +301,21 @@ export function startHttpServer (
           res.end()
           return
         }
+        case 'close-account': {
+          const wsId = req.query.wsId as WorkspaceUuid
+          const accountUuid = req.query.account as AccountUuid
+          if (wsId === undefined || accountUuid === undefined) {
+            res.writeHead(400)
+            res.end()
+            return
+          }
+          void sessions.closeAccount(wsId, accountUuid).catch((err) => {
+            ctx.error('error', { err })
+          })
+          res.writeHead(200)
+          res.end()
+          return
+        }
         case 'reboot': {
           process.exit(0)
         }
@@ -435,7 +451,14 @@ export function startHttpServer (
   app.put('/api/v1/broadcast', (req, res) => {
     try {
       const token = (req.query.token as string) ?? (req.headers.authorization ?? '').split(' ')[1]
-      decodeToken(token)
+      const payload = decodeToken(token)
+      // servone: any signed-in user could push forged txs to every client of any workspace; only fulltext and rating
+      // (system account) call this.
+      if (payload.account !== systemAccountUuid) {
+        res.writeHead(403, {})
+        res.end()
+        return
+      }
 
       const ws = req.query.workspace as WorkspaceUuid
 

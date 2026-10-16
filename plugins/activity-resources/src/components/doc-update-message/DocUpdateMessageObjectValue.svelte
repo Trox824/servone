@@ -45,8 +45,10 @@
   $: objectPresenter = hierarchy.classHierarchyMixin(objectClass, view.mixin.ObjectPresenter)
 
   async function getValue (object: Doc): Promise<string | undefined> {
-    if (viewlet?.valueAttr) {
-      return (object as any)[viewlet.valueAttr]
+    // servone: an empty attr (e.g. an issue title not loaded yet) left "New issue:" with a blank link.
+    const attrValue = viewlet?.valueAttr ? (object as any)[viewlet.valueAttr] : undefined
+    if (typeof attrValue === 'string' && attrValue.trim() !== '') {
+      return attrValue
     }
 
     return await getDocLinkTitle(client, object._id, object._class, object)

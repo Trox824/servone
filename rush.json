@@ -621,6 +621,46 @@
       "shouldPublish": true
     },
     {
+      "packageName": "@servone/config",
+      "projectFolder": "packages/servone-config",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@servone/notify-rules",
+      "projectFolder": "packages/servone-notify-rules",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@servone/forms",
+      "projectFolder": "packages/servone-forms",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@servone/mail",
+      "projectFolder": "packages/servone-mail",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@servone/theme",
+      "projectFolder": "packages/servone-theme",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@servone/ui",
+      "projectFolder": "packages/servone-ui",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@servone/approvals",
+      "projectFolder": "packages/servone-approvals",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@servone/import",
+      "projectFolder": "packages/servone-import",
+      "shouldPublish": false
+    },
+    {
       "packageName": "@hcengineering/ui",
       "projectFolder": "packages/ui",
       "shouldPublish": true
@@ -2714,6 +2754,11 @@
     {
       "packageName": "@hcengineering/pod-translate",
       "projectFolder": "services/translate",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@servone/services",
+      "projectFolder": "services/servone",
       "shouldPublish": false
     },
     {

@@ -229,9 +229,9 @@
             selected = undefined
           }}
         >
-          <button class="hulyTableAttr-content__row-dragMenu" on:click|stopPropagation={() => {}}>
+          <span class="hulyTableAttr-content__row-dragMenu" role="button" tabindex="0" on:click|stopPropagation={() => {}}>
             <IconMoreV2 size={'small'} />
-          </button>
+          </span>
           <ObjectPresenter
             _class={state._class}
             objectId={state._id}

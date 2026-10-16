@@ -48,6 +48,7 @@
   export let boundary: HTMLElement | undefined = undefined
   export let readonly: boolean = false
   export let kitOptions: Partial<EditorKitOptions> = {}
+  export let editorAttributes: Record<string, string> = {}
 
   export let attachFile: FileAttachFunction | undefined = undefined
 
@@ -281,6 +282,7 @@
       {isScrollable}
       {extraActions}
       {boundary}
+      {editorAttributes}
       kitOptions={{
         emoji: true,
         textColorStyling: true,

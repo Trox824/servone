@@ -1,0 +1,25 @@
+{
+  "string": {
+    "Requests": "Đề xuất",
+    "Request": "Đề xuất",
+    "Approve": "Duyệt",
+    "Approved": "Đã duyệt",
+    "CreatedRequest": "Đã tạo đề xuất ",
+    "For": "Cho",
+    "Change": "Thay đổi",
+    "Add": "Thêm",
+    "Remove": "Gỡ",
+    "Status": "Trạng thái",
+    "Requested": "Đã đề xuất",
+    "Completed": "Hoàn thành",
+    "Reject": "Từ chối",
+    "Rejected": "Đã từ chối",
+    "Comment": "Bình luận",
+    "PleaseTypeMessage": "Nhập bình luận để tiếp tục...",
+    "NoRequests": "Không có đề xuất",
+    "Cancel": "Hủy",
+    "Cancelled": "Đã hủy",
+    "NewRequest": "Đề xuất mới",
+    "CancelRequest": "Hủy đề xuất"
+  }
+}

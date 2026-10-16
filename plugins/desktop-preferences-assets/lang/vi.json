@@ -1,0 +1,11 @@
+{
+  "string": {
+    "ShowNotifications": "Hiện thông báo",
+    "PlaySound": "Phát âm thanh",
+    "BounceAppIcon": "Nảy biểu tượng ứng dụng (chỉ trên Mac)",
+    "ShowBadge": "Hiện huy hiệu trên biểu tượng ứng dụng",
+    "SoundAndAppearance": "Âm thanh và giao diện",
+    "HaveGotANotification": "Bạn có thông báo mới",
+    "TotalNotificationsCount": "Bạn có tổng cộng {count, plural, =1 {# thông báo} other {# thông báo}}"
+  }
+}

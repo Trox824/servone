@@ -45,6 +45,14 @@ const KEEP_ALIVE_HEADERS = {
   'Keep-Alive': `timeout=${KEEP_ALIVE_TIMEOUT}, max=${KEEP_ALIVE_MAX}`
 }
 
+const SECURITY_HEADERS = {
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'X-Frame-Options': 'SAMEORIGIN',
+  'Content-Security-Policy': "frame-ancestors 'self'"
+}
+
 async function storageUpload (
   ctx: MeasureContext,
   storageAdapter: StorageAdapter,
@@ -283,6 +291,11 @@ export function start (
   extraConfig?: Record<string, string | undefined>
 ): () => void {
   const app = express()
+  app.disable('x-powered-by')
+  app.use((req, res, next) => {
+    res.set(SECURITY_HEADERS)
+    next()
+  })
 
   const tempFileDir = mkdtempSync(join(tmpdir(), 'front-'))
   let temoFileIndex = 0
@@ -410,6 +423,8 @@ export function start (
 
   app.use(
     expressStaticGzip(dist, {
+      enableBrotli: true,
+      orderPreference: ['br'],
       serveStatic: {
         cacheControl: true,
         dotfiles: 'allow',

@@ -1,0 +1,33 @@
+{
+  "string": {
+    "Cancel": "Hủy",
+    "Pause": "Tạm dừng",
+    "Stop": "Dừng",
+    "Resume": "Tiếp tục",
+    "Record": "Ghi",
+    "Done": "Xong",
+    "CancelRecording": "Hủy ghi",
+    "CancelRecordingConfirm": "Bạn có chắc muốn hủy bản ghi đang ghi không?",
+    "RestartRecording": "Ghi lại từ đầu",
+    "RestartRecordingConfirm": "Bạn có chắc muốn ghi lại từ đầu không?",
+    "ScreenRecordingName": "Bản ghi màn hình {date}",
+    "CameraRecordingName": "Bản ghi camera {date}",
+    "ClickToSkip": "Nhấn để bỏ qua",
+    "RecordVideo": "Ghi video",
+    "ShareWithAudio": "Chia sẻ kèm âm thanh",
+    "ShareScreen": "Chia sẻ màn hình",
+    "StopSharing": "Dừng chia sẻ",
+    "SelectVideoToRecord": "Bật camera hoặc chia sẻ màn hình để ghi",
+    "CameraSize": "Kích thước camera",
+    "CameraPos": "Vị trí camera",
+    "Small": "Nhỏ",
+    "Medium": "Vừa",
+    "Large": "Lớn",
+    "TopLeft": "Trên bên trái",
+    "TopRight": "Trên bên phải",
+    "BottomLeft": "Dưới bên trái",
+    "BottomRight": "Dưới bên phải",
+    "Resolution": "Độ phân giải",
+    "Original": "Gốc"
+  }
+}

@@ -61,7 +61,9 @@
     : readonly
 </script>
 
-<div class="hulyComponent-content hulyComponent-content__container noShrink">
+<!-- servone: composer pinned to the panel bottom like the channel view, not floating under a short thread.
+  Grows into the space under the header; height: 100% pushed the composer past the panel edge. -->
+<div class="hulyComponent-content hulyComponent-content__container" style:flex="1 1 0" style:height="auto">
   {#if dataProvider !== undefined && channel !== undefined}
     <ReverseChannelScrollView
       bind:selectedMessageId
@@ -69,8 +71,6 @@
       {channel}
       provider={dataProvider}
       {autofocus}
-      fullHeight={false}
-      fixedInput={false}
       {onReply}
     >
       <svelte:fragment slot="header">

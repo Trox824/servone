@@ -1119,7 +1119,22 @@ export async function getSubscriptionByProviderId (
   return subscription ?? null
 }
 
+export async function getAccountLocale (
+  ctx: MeasureContext,
+  db: AccountDB,
+  branding: Branding | null,
+  token: string,
+  params: { account: AccountUuid }
+): Promise<string | null> {
+  const { extra } = decodeTokenVerbose(ctx, token)
+  verifyAllowedServices(['workspace', 'tool', 'servone'], extra)
+
+  const account = await db.account.findOne({ uuid: params.account })
+  return account?.locale ?? null
+}
+
 export type AccountServiceMethods =
+  | 'getAccountLocale'
   | 'getPendingWorkspace'
   | 'updateWorkspaceInfo'
   | 'workerHandshake'
@@ -1155,6 +1170,7 @@ export type AccountServiceMethods =
  */
 export function getServiceMethods (): Partial<Record<AccountServiceMethods, AccountMethodHandler>> {
   return {
+    getAccountLocale: wrap(getAccountLocale),
     getPendingWorkspace: wrap(getPendingWorkspace),
     updateWorkspaceInfo: wrap(updateWorkspaceInfo),
     workerHandshake: wrap(workerHandshake),

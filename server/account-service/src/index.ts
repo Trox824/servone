@@ -11,10 +11,12 @@ import account, {
   getAccountDB,
   getAllTransactors,
   getMethods,
-  cleanExpiredOtp
+  cleanExpiredOtp,
+  cleanEmail
 } from '@hcengineering/account'
 import accountEn from '@hcengineering/account/lang/en.json'
 import accountRu from '@hcengineering/account/lang/ru.json'
+import accountVi from '@hcengineering/account/lang/vi.json'
 import { Analytics } from '@hcengineering/analytics'
 import { registerProviders } from '@hcengineering/auth-providers'
 import { metricsAggregate, type Branding, type BrandingMap, type MeasureContext } from '@hcengineering/core'
@@ -28,11 +30,34 @@ import bodyParser from 'koa-bodyparser'
 import Router from 'koa-router'
 import os from 'os'
 import { migrateFromOldAccounts } from './migration/migration'
+import { AUTH_RATE_LIMIT_WINDOW_MS, AuthRateLimiter, getClientIp } from './rateLimit'
 
 export * from './migration/utils'
 export * from './migration/types'
 
 const AUTH_TOKEN_COOKIE = 'account-metadata-Token'
+// Team decision: one office day. OWASP suggests 4-8h for full-day office apps.
+const SESSION_ABSOLUTE_MAX_AGE_MS = 8 * 60 * 60 * 1000
+
+// servone: unauthenticated auth methods are throttled per IP and per email (OTP is 6 digits, emails cost Resend quota).
+const RATE_LIMITED_METHODS = new Set([
+  'login',
+  'loginOtp',
+  'signUp',
+  'signUpOtp',
+  'validateOtp',
+  'join',
+  'signUpJoin',
+  'requestPasswordReset',
+  'restorePassword'
+])
+
+const SECURITY_HEADERS = {
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'X-Frame-Options': 'DENY'
+}
 
 const KEEP_ALIVE_HEADERS = {
   'Content-Type': 'application/json',
@@ -96,6 +121,9 @@ export function serveAccount (measureCtx: MeasureContext, brandings: BrandingMap
         return accountEn
       case 'ru':
         return accountRu
+      // servone: launch languages are vi and en
+      case 'vi':
+        return accountVi
       default:
         return accountEn
     }
@@ -147,14 +175,34 @@ export function serveAccount (measureCtx: MeasureContext, brandings: BrandingMap
   })
 
   const app = new Koa()
+  app.proxy = true
   const router = new Router()
   const authProviderShutdownController = new AbortController()
 
+  app.use(async (ctx, next) => {
+    ctx.set(SECURITY_HEADERS)
+    await next()
+  })
+
+  // servone: credentialed CORS allows only CORS_ORIGINS (comma-separated), else the FRONT_URL origin.
+  const corsOrigins = (process.env.CORS_ORIGINS ?? (frontURL !== undefined ? new URL(frontURL).origin : ''))
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter((origin) => origin !== '')
   app.use(
     cors({
-      credentials: true
+      credentials: true,
+      origin: (ctx) => {
+        const origin = ctx.get('Origin')
+        return corsOrigins.includes(origin) ? origin : ''
+      }
     })
   )
+
+  const authLimiter = new AuthRateLimiter()
+  setInterval(() => {
+    authLimiter.sweep()
+  }, AUTH_RATE_LIMIT_WINDOW_MS)
   app.use(bodyParser())
 
   registerProviders(
@@ -213,6 +261,10 @@ export function serveAccount (measureCtx: MeasureContext, brandings: BrandingMap
       meta.timezone = headers['x-timezone'] as string
     }
 
+    if (!isServiceRequest && headers?.['x-locale'] !== undefined) {
+      meta.locale = headers['x-locale'] as string // servone:
+    }
+
     if (headers?.['x-client-network-position'] !== undefined) {
       const val = headers['x-client-network-position'] as string
       if (['internal', 'external'].includes(val)) {
@@ -236,7 +288,8 @@ export function serveAccount (measureCtx: MeasureContext, brandings: BrandingMap
     const option = {
       httpOnly: true,
       secure: ctx.request.secure,
-      maxAge: 1000 * 60 * 60 * 24 * 365 // 1 year
+      sameSite: 'lax' as const,
+      maxAge: SESSION_ABSOLUTE_MAX_AGE_MS
     }
 
     const options = []
@@ -394,6 +447,18 @@ export function serveAccount (measureCtx: MeasureContext, brandings: BrandingMap
       ctx.res.writeHead(404, KEEP_ALIVE_HEADERS)
       ctx.res.end(body)
       return
+    }
+
+    // servone: see RATE_LIMITED_METHODS
+    if (RATE_LIMITED_METHODS.has(request.method)) {
+      const ip = getClientIp(ctx.request.headers['x-forwarded-for'], ctx.request.socket.remoteAddress ?? '')
+      const email = typeof request.params?.email === 'string' ? cleanEmail(request.params.email) : undefined
+      if (!authLimiter.isAllowed(ip, email)) {
+        measureCtx.warn('Account rate limit hit', { method: request.method, ip, email })
+        ctx.res.writeHead(429, KEEP_ALIVE_HEADERS)
+        ctx.res.end(JSON.stringify({ id: request.id, error: unknownStatus('Too many attempts. Try again in 15 minutes.') }))
+        return
+      }
     }
 
     const [db] = await accountsDb

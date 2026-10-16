@@ -61,7 +61,7 @@ import type {
   WorkspaceLoginInfo,
   WorkspaceOperation
 } from './types'
-import { getClientTimezone, isNetworkError } from './utils'
+import { getClientLocale, getClientTimezone, isNetworkError } from './utils'
 
 /** @public */
 export interface AccountClient {
@@ -156,6 +156,8 @@ export interface AccountClient {
   getSocialIds: (includeDeleted?: boolean) => Promise<SocialId[]>
   getWorkspaceMembers: () => Promise<WorkspaceMemberInfo[]>
   updateWorkspaceRole: (account: string, role: AccountRole) => Promise<void>
+  deactivateWorkspaceMember: (account: AccountUuid) => Promise<void>
+  reactivateWorkspaceMember: (account: AccountUuid) => Promise<void>
   updateAllowReadOnlyGuests: (
     readOnlyGuestsAllowed: boolean
   ) => Promise<{ guestPerson: Person, guestSocialIds: SocialId[] } | undefined>
@@ -249,6 +251,8 @@ export interface AccountClient {
   checkPasswordAging: () => Promise<boolean>
 
   setMyProfile: (profile: Partial<Omit<UserProfile, 'personUuid'>>) => Promise<void>
+  setMyLocale: (params: { locale: string }) => Promise<void>
+  getAccountLocale: (params: { account: AccountUuid }) => Promise<string | null>
   getUserProfile: (personUuid?: PersonUuid) => Promise<PersonWithProfile | null>
 
   getSubscriptions: (workspaceUuid?: WorkspaceUuid | undefined, activeOnly?: boolean) => Promise<Subscription[]>
@@ -328,7 +332,9 @@ class AccountClientImpl implements AccountClient {
 
   private async _rpc<T>(request: Request): Promise<T> {
     const timezone = getClientTimezone()
+    const locale = getClientLocale()
     const meta: Record<string, string> = timezone !== undefined ? { 'x-timezone': timezone } : {}
+    if (locale !== undefined) meta['x-locale'] = locale // servone:
     const response = await fetch(this.url, {
       ...this.request,
       headers: {
@@ -853,6 +859,24 @@ class AccountClientImpl implements AccountClient {
     await this.rpc(request)
   }
 
+  async deactivateWorkspaceMember (account: AccountUuid): Promise<void> {
+    const request = {
+      method: 'deactivateWorkspaceMember' as const,
+      params: { account }
+    }
+
+    await this.rpc(request)
+  }
+
+  async reactivateWorkspaceMember (account: AccountUuid): Promise<void> {
+    const request = {
+      method: 'reactivateWorkspaceMember' as const,
+      params: { account }
+    }
+
+    await this.rpc(request)
+  }
+
   async updateWorkspaceName (name: string): Promise<void> {
     const request = {
       method: 'updateWorkspaceName' as const,
@@ -1297,6 +1321,14 @@ class AccountClientImpl implements AccountClient {
         throw new PlatformError(result.error)
       }
     }
+  }
+
+  async setMyLocale (params: { locale: string }): Promise<void> {
+    await this._rpc({ method: 'setMyLocale', params })
+  }
+
+  async getAccountLocale (params: { account: AccountUuid }): Promise<string | null> {
+    return await this._rpc({ method: 'getAccountLocale', params })
   }
 
   async setMyProfile (profile: Partial<Omit<UserProfile, 'personUuid'>>): Promise<void> {

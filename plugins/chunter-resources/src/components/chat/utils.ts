@@ -19,7 +19,7 @@ import { AccountRole, getCurrentAccount, hasAccountRole, type UserStatus, type A
 import notification, { type DocNotifyContext } from '@hcengineering/notification'
 import { InboxNotificationsClientImpl } from '@hcengineering/notification-resources'
 import { getClient, MessageBox } from '@hcengineering/presentation'
-import { type Action, showPopup } from '@hcengineering/ui'
+import { type Action, IconAdd, showPopup } from '@hcengineering/ui'
 import view from '@hcengineering/view'
 import workbench, { type SpecialNavModel } from '@hcengineering/workbench'
 import { get, writable } from 'svelte/store'
@@ -286,7 +286,8 @@ function getChannelsActions (): Action[] {
   return hasAccountRole(getCurrentAccount(), AccountRole.User)
     ? [
         {
-          icon: chunter.icon.Hashtag,
+          // servone: section icons read as labels, not as a create button.
+          icon: IconAdd,
           label: chunter.string.CreateChannel,
           action: async (): Promise<void> => {
             showPopup(chunter.component.CreateChannel, {}, 'top')
@@ -301,7 +302,7 @@ function getDirectActions (): Action[] {
     ? [
         {
           label: chunter.string.NewDirectChat,
-          icon: chunter.icon.Thread,
+          icon: IconAdd,
           action: async (): Promise<void> => {
             showPopup(chunter.component.CreateDirectChat, {}, 'top')
           }

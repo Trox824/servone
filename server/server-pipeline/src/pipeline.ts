@@ -73,6 +73,7 @@ import { createStorageDataAdapter } from './blobStorage'
 import { CommunicationMiddleware, type CommunicationApiFactory } from './communication'
 
 import { RatingMiddleware } from '@hcengineering/server-rating'
+import { ApprovalGuardMiddleware } from '@servone/approvals'
 
 /**
  * @public
@@ -152,6 +153,7 @@ export function createServerPipeline (
         SpaceSecurityMiddleware.create(opt.adapterSecurity ?? false, ctx, context, next),
       SpacePermissionsMiddleware.create,
       GuestPermissionsMiddleware.create,
+      ApprovalGuardMiddleware.create, // servone: judges session txes only, so it stays before MarkDerivedEntryMiddleware
       ConfigurationMiddleware.create,
       ContextNameMiddleware.create,
       MarkDerivedEntryMiddleware.create,

@@ -41,7 +41,9 @@ export const pages = [
   'auth',
   'login-password',
   'changePassword',
-  'tfa'
+  'tfa',
+  // servone: MCP OAuth consent (docs/upstream-edits.md)
+  'mcpAuthorize'
 ] as const
 
 export type Pages = (typeof pages)[number]

@@ -30,9 +30,9 @@ describe('path (bundled UI)', () => {
   })
 
   test('getBundledUiDistPath joins getAppPath with dist/ui', () => {
-    mockGetAppPath.mockReturnValue('/Applications/Huly.app/Contents/Resources/app.asar')
+    mockGetAppPath.mockReturnValue('/Applications/Servone.app/Contents/Resources/app.asar')
     expect(getBundledUiDistPath()).toBe(
-      nodePath.join('/Applications/Huly.app/Contents/Resources/app.asar', 'dist', 'ui')
+      nodePath.join('/Applications/Servone.app/Contents/Resources/app.asar', 'dist', 'ui')
     )
   })
 

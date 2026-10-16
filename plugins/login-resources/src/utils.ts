@@ -32,6 +32,7 @@ import {
   AccountRole,
   concatLink,
   getCurrentAccount,
+  isArchivingMode,
   type AccountUuid,
   type Person,
   type WorkspaceUuid,
@@ -802,6 +803,7 @@ export async function sendInvite (email: string, role: AccountRole): Promise<voi
   } catch (e) {
     console.log('Failed to send invite', email, role)
     console.error(e)
+    throw e // servone: bring-team shows a per-address error
   }
 }
 
@@ -1119,6 +1121,21 @@ export async function doLoginNavigate (
         }
       } catch (err: any) {
         // Json parse error could be ignored
+      }
+    }
+
+    if (result.token != null) {
+      const workspaces = await getWorkspaces()
+      // Archived workspaces need the restore prompt on the select page.
+      if (workspaces.length === 1 && !isArchivingMode(workspaces[0].mode)) {
+        const onlyWorkspace = workspaces[0]
+        updateStatus(new Status(Severity.INFO, login.status.ConnectingToServer, {}))
+        const [loginStatus, selectResult] = await selectWorkspace(onlyWorkspace.url)
+        updateStatus(loginStatus)
+        if (selectResult != null) {
+          navigateToWorkspace(onlyWorkspace.url, selectResult, navigateUrl)
+          return
+        }
       }
     }
 

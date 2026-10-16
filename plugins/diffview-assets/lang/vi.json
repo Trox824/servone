@@ -1,0 +1,14 @@
+{
+  "string": {
+    "ViewMode": "Chế độ xem",
+    "Unified": "Gộp",
+    "Split": "Chia đôi",
+    "Viewed": "Đã xem",
+    "ShowDiff": "Xem thay đổi",
+    "NoChanges": "Tệp không có thay đổi nào",
+    "LargeDiffsAreHidden": "Mặc định không hiển thị các thay đổi lớn.",
+    "FileIsTooLarge": "Tệp quá lớn để hiển thị.",
+    "FileWasRenamed": "Tệp đã được đổi tên, nội dung không đổi.",
+    "FileWasDeleted": "Tệp đã bị xóa."
+  }
+}

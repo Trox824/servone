@@ -1,0 +1,13 @@
+{
+  "string": {
+    "Inbox": "Hộp thư đến",
+    "ReactedToYourMessage": "đã bày tỏ cảm xúc với tin nhắn của bạn",
+    "ClearAll": "Xóa tất cả",
+    "InboxIsClear": "Hộp thư đến trống",
+    "YouDontHaveAnyNewMessages": "Bạn không có tin nhắn mới nào",
+    "ReadAll": "Đọc tất cả",
+    "Clearing": "Đang xóa...",
+    "Reading": "Đang đánh dấu đã đọc...",
+    "HideUserNames": "Ẩn tên người dùng"
+  }
+}

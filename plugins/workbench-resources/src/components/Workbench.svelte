@@ -297,6 +297,7 @@
     hasNewInboxNotifications = false
   }
 
+  const IN_APP_NAVIGATOR_APPS = ['chunter', 'chat', 'inbox', 'mail']
   const doSyncLoc = reduceCalls(async (loc: Location): Promise<void> => {
     if (workspaceId !== $location.path[1]) {
       tabs = []
@@ -309,6 +310,12 @@
     await syncLoc(loc)
     await updateWindowTitle(loc)
     checkOnHide()
+    // servone: judged on the settled URL; a repeat sync of the same URL returns early and would leave the list hidden.
+    const settled = getCurrentLocation()
+    const hasAppList = navigatorModel !== undefined || IN_APP_NAVIGATOR_APPS.includes(currentAppAlias ?? '')
+    if (mobileAdaptive && hasAppList && settled.path[3] === undefined && (settled.fragment ?? '') === '') {
+      $deviceInfo.navigator.visible = true
+    }
   })
 
   onDestroy(
@@ -806,6 +813,10 @@
   defineSeparators('main', mainSeparators)
 
   $: mainNavigator = currentApplication && navigatorModel && $deviceInfo.navigator.visible
+  $: hasNavigator = navigatorModel !== undefined || (currentAppAlias !== undefined && IN_APP_NAVIGATOR_APPS.includes(currentAppAlias))
+  $: if ($deviceInfo.navigator.available !== hasNavigator) {
+    $deviceInfo.navigator.available = hasNavigator
+  }
   $: elementPanel = $deviceInfo.replacedPanel ?? contentPanel
 
   $: deactivated =
@@ -918,7 +929,6 @@
           active={currentApplication?._id}
           direction={$deviceInfo.navigator.direction}
           {customAppProps}
-          on:toggleNav={toggleNav}
         />
       </div>
       <div
@@ -1146,7 +1156,8 @@
     min-height: 0;
     width: 100%;
     height: 100%;
-    background-color: var(--theme-panel-color);
+    // servone: the shell gaps must match the rail and status bar, not the white card colour
+    background-color: var(--theme-statusbar-color);
     touch-action: none;
 
     &.apps-horizontal {

@@ -42,7 +42,6 @@ import { leadId } from '@hcengineering/lead'
 import login, { loginId } from '@hcengineering/login'
 import love, { loveId } from '@hcengineering/love'
 import notification, { notificationId } from '@hcengineering/notification'
-import onboard, { onboardId } from '@hcengineering/onboard'
 import presence, { presenceId } from '@hcengineering/presence'
 import print, { printId } from '@hcengineering/print'
 import { processId } from '@hcengineering/process'
@@ -275,6 +274,16 @@ const PASSWORD_REQUIREMENTS: Record<NonNullable<Config['PASSWORD_STRICTNESS']>, 
   }
 }
 
+const VIETNAM_TIME_ZONES = ['Asia/Ho_Chi_Minh', 'Asia/Saigon']
+
+// servone: only reaches a first visit; setDefaultLanguage keeps the language already stored under `lang`.
+function firstVisitLanguage(languages: string[], fallback: string): string {
+  if (!languages.includes('vi')) return fallback
+  const isVietnamese = navigator.languages.some((tag) => tag.toLowerCase().startsWith('vi'))
+  const isInVietnam = VIETNAM_TIME_ZONES.includes(Intl.DateTimeFormat().resolvedOptions().timeZone)
+  return isVietnamese || isInVietnam ? 'vi' : fallback
+}
+
 function configureI18n(): void {
   // Add localization
   addStringsLoader(
@@ -332,7 +341,6 @@ function configureI18n(): void {
     notificationId,
     async (lang: string) => await import(`@hcengineering/notification-assets/lang/${lang}.json`)
   )
-  addStringsLoader(onboardId, async (lang: string) => await import(`@hcengineering/onboard-assets/lang/${lang}.json`))
   addStringsLoader(
     preferenceId,
     async (lang: string) => await import(`@hcengineering/preference-assets/lang/${lang}.json`)
@@ -495,7 +503,7 @@ export async function configurePlatform() {
   setMetadata(presentation.metadata.StatsUrl, config.STATS_URL)
   setMetadata(presentation.metadata.LinkPreviewUrl, config.LINK_PREVIEW_URL)
   setMetadata(presentation.metadata.MailUrl, config.MAIL_URL)
-  setMetadata(presentation.metadata.SignupUrl, config.SIGNUP_URL ?? 'https://huly.io/signup')
+  setMetadata(presentation.metadata.SignupUrl, config.SIGNUP_URL ?? '/login/signup')
 
   const disabledFeatures = (config.DISABLED_FEATURES ??'').split(',').map(it => it.trim()).filter(it => it.length > 0)
   setMetadata(presentation.metadata.DisabledFeatures, new Set(disabledFeatures))
@@ -559,7 +567,6 @@ export async function configurePlatform() {
     new Map([
       [workbenchId, workbench.component.WorkbenchApp],
       [loginId, login.component.LoginApp],
-      [onboardId, onboard.component.OnboardApp],
       [githubId, github.component.ConnectApp],
       [calendarId, calendar.component.ConnectApp],
       [guestId, guest.component.GuestApp],
@@ -572,7 +579,6 @@ export async function configurePlatform() {
 
   addLocation(clientId, async () => await import(/* webpackChunkName: "client" */ '@hcengineering/client-resources'))
   addLocation(loginId, async () => await import(/* webpackChunkName: "login" */ '@hcengineering/login-resources'))
-  addLocation(onboardId, async () => await import(/* webpackChunkName: "onboard" */ '@hcengineering/onboard-resources'))
   addLocation(
     workbenchId,
     async () => await import(/* webpackChunkName: "workbench" */ '@hcengineering/workbench-resources')
@@ -694,6 +700,7 @@ export async function configurePlatform() {
   )
   addLocation(cardId, async () => await import(/* webpackChunkName: "card" */ '@hcengineering/card-resources'))
   addLocation(chatId, async () => await import(/* webpackChunkName: "chat" */ '@hcengineering/chat-resources'))
+  addLocation(mailId, async () => ({ default: async () => ({}) }))
   addLocation(processId, async () => await import(/* webpackChunkName: "process" */ '@hcengineering/process-resources'))
   addLocation(
     achievementId,
@@ -738,7 +745,7 @@ export async function configurePlatform() {
 
   setMetadata(uiPlugin.metadata.PlatformTitle, title)
   setMetadata(workbench.metadata.PlatformTitle, title)
-  setDefaultLanguage(myBranding.defaultLanguage ?? 'en')
+  setDefaultLanguage(firstVisitLanguage(languages, myBranding.defaultLanguage ?? 'en'))
   setMetadata(workbench.metadata.DefaultApplication, myBranding.defaultApplication ?? 'tracker')
   setMetadata(workbench.metadata.DefaultSpace, myBranding.defaultSpace ?? tracker.project.DefaultProject)
   setMetadata(workbench.metadata.DefaultSpecial, myBranding.defaultSpecial ?? 'issues')

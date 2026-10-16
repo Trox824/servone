@@ -29,6 +29,7 @@ import { CalendarController } from './calendarController'
 import config from './config'
 import { OutcomingClient } from './outcomingClient'
 import { PushHandler } from './pushHandler'
+import { servoneConnectEndpoint } from './servone-connect'
 import { createServer, listen } from './server'
 import { GoogleEmail, type Endpoint, type State } from './types'
 import { getServiceToken } from './utils'
@@ -70,6 +71,7 @@ export const main = async (): Promise<void> => {
   ctx.info('Calendar controller started')
   watchController.startCheck()
   const endpoints: Endpoint[] = [
+    servoneConnectEndpoint(ctx, accountClient, integrationClient), // servone: POST /connect/token
     {
       endpoint: '/signin',
       type: 'get',

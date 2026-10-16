@@ -1,0 +1,12 @@
+{
+  "string": {
+    "Rating": "Xếp hạng",
+    "RatingWidget": "Tiện ích xếp hạng",
+    "RatingWidgetEmpty": "Chưa có tài liệu nào được gắn sao. Để thấy mục ở đây, hãy gắn sao cho tài liệu (bấm biểu cảm ngôi sao trên tài liệu bất kỳ).",
+    "Level": "Cấp độ",
+    "MonthOps": "{month}: {ops} thao tác",
+    "MonthNoOps": "{month}: không có thao tác",
+    "AddStar": "Gắn sao",
+    "AddStarAria": "Thêm biểu cảm ngôi sao"
+  }
+}

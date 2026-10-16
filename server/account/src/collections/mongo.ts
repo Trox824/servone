@@ -34,6 +34,7 @@ import type {
   Sort as RawSort
 } from 'mongodb'
 import { UUID } from 'mongodb'
+import platform, { PlatformError, Severity, Status } from '@hcengineering/platform'
 
 import type {
   Account,
@@ -380,6 +381,7 @@ interface WorkspaceMember {
   workspaceUuid: WorkspaceUuid
   accountUuid: AccountUuid
   role: AccountRole
+  disabled?: boolean
 }
 
 interface Migration {
@@ -598,6 +600,11 @@ export class MongoAccountDB implements AccountDB {
   }
 
   async assignWorkspace (accountId: AccountUuid, workspaceId: WorkspaceUuid, role: AccountRole): Promise<void> {
+    const existing = await this.workspaceMembers.findOne({ workspaceUuid: workspaceId, accountUuid: accountId })
+    if (existing?.disabled === true) {
+      throw new PlatformError(new Status(Severity.ERROR, platform.status.Forbidden, {}))
+    }
+
     await this.workspaceMembers.insertOne({
       workspaceUuid: workspaceId,
       accountUuid: accountId,
@@ -620,6 +627,14 @@ export class MongoAccountDB implements AccountDB {
       workspaceUuid: workspaceId,
       accountUuid: accountId
     })
+  }
+
+  async setWorkspaceMemberDisabled (
+    accountId: AccountUuid,
+    workspaceId: WorkspaceUuid,
+    disabled: boolean
+  ): Promise<void> {
+    await this.workspaceMembers.update({ workspaceUuid: workspaceId, accountUuid: accountId }, { disabled })
   }
 
   async createWorkspace (data: WorkspaceData, status: WorkspaceStatusData): Promise<WorkspaceUuid> {
@@ -814,7 +829,8 @@ export class MongoAccountDB implements AccountDB {
   async getWorkspaceRole (accountId: AccountUuid, workspaceId: WorkspaceUuid): Promise<AccountRole | null> {
     const assignment = await this.workspaceMembers.findOne({
       workspaceUuid: workspaceId,
-      accountUuid: accountId
+      accountUuid: accountId,
+      disabled: { $ne: true }
     })
 
     return assignment?.role ?? null
@@ -822,7 +838,8 @@ export class MongoAccountDB implements AccountDB {
 
   async getWorkspaceRoles (accountId: AccountUuid): Promise<Map<WorkspaceUuid, AccountRole>> {
     const assignment = await this.workspaceMembers.find({
-      accountUuid: accountId
+      accountUuid: accountId,
+      disabled: { $ne: true }
     })
 
     return assignment.reduce<Map<WorkspaceUuid, AccountRole>>((acc, it) => {
@@ -834,12 +851,13 @@ export class MongoAccountDB implements AccountDB {
   async getWorkspaceMembers (workspaceId: WorkspaceUuid): Promise<WorkspaceMemberInfo[]> {
     return (await this.workspaceMembers.find({ workspaceUuid: workspaceId })).map((wmi) => ({
       person: wmi.accountUuid,
-      role: wmi.role
+      role: wmi.role,
+      disabled: wmi.disabled === true
     }))
   }
 
   async getAccountWorkspaces (accountId: AccountUuid): Promise<WorkspaceInfoWithStatus[]> {
-    const members = await this.workspaceMembers.find({ accountUuid: accountId })
+    const members = await this.workspaceMembers.find({ accountUuid: accountId, disabled: { $ne: true } })
     const wsIds = members.map((m) => m.workspaceUuid)
 
     return await this.workspace.find({ uuid: { $in: wsIds } })

@@ -1,4 +1,4 @@
-//
+<!--
 // Copyright © 2020 Anticrm Platform Contributors.
 //
 // Licensed under the Eclipse Public License, Version 2.0 (the "License");
@@ -11,23 +11,23 @@
 //
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
+-->
+<script lang="ts">
+  // Keeps the `bind:error` contract of the Svelte 4 class version.
+  import ErrorComponent from './ErrorComponent.svelte'
 
-import ErrorComponent from './ErrorComponent.svelte'
-export default class errorBoundary extends ErrorComponent {
-  constructor (config: any) {
-    let error: any = null
-    config.props.$$slots.default = config.props.$$slots.default.map((x: any) => (...args: any[]) => {
-      try {
-        return x(...args)
-      } catch (e) {
-        console.error(e)
-        error = e
-      }
-    })
-    super(config)
-    if (error != null) {
-      this.$set({ error })
-    }
+  export let error: any = null
+
+  function onerror (e: unknown): void {
+    console.error(e)
+    error = e
   }
-}
+</script>
+
+{#if error != null}
+  <ErrorComponent {error} />
+{:else}
+  <svelte:boundary {onerror}>
+    <slot />
+  </svelte:boundary>
+{/if}

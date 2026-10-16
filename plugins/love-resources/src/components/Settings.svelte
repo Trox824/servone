@@ -3,12 +3,16 @@
   import { DevicesPreference } from '@hcengineering/love'
   import { getClient } from '@hcengineering/presentation'
   import { Breadcrumb, Header, Label, Toggle } from '@hcengineering/ui'
-  import { isKrispNoiseFilterSupported } from '@livekit/krisp-noise-filter'
   import love from '../plugin'
   import { myPreferences } from '../stores'
-  import { krispProcessor } from '../utils'
+  import { loadKrisp, setNoiseCancellation } from '../utils'
 
   const client = getClient()
+
+  let isKrispSupported = false
+  void loadKrisp().then((krisp) => {
+    isKrispSupported = krisp.isKrispNoiseFilterSupported()
+  })
 
   async function saveMicPreference (myPreferences: DevicesPreference | undefined, value: boolean): Promise<void> {
     if (myPreferences !== undefined) {
@@ -56,7 +60,7 @@
         blurRadius: 0
       })
     }
-    await krispProcessor.setEnabled(value)
+    await setNoiseCancellation(value)
   }
 </script>
 
@@ -87,9 +91,9 @@
       <div class="flex-row-center flex-gap-4">
         <Label label={love.string.NoiseCancellation} />
         <Toggle
-          disabled={!isKrispNoiseFilterSupported()}
-          on={isKrispNoiseFilterSupported() && ($myPreferences?.noiseCancellation ?? true)}
-          showTooltip={!isKrispNoiseFilterSupported()
+          disabled={!isKrispSupported}
+          on={isKrispSupported && ($myPreferences?.noiseCancellation ?? true)}
+          showTooltip={!isKrispSupported
             ? { label: love.string.NoiseCancellationNotSupported }
             : undefined}
           on:change={(e) => {

@@ -7,18 +7,22 @@ import core, {
   type Client,
   type Doc,
   type DocumentQuery,
+  type DocumentUpdate,
   type FindOptions,
   type FindResult,
   generateId,
   getCurrentAccount,
   type Hierarchy,
+  type MixinUpdate,
   type Ref,
   type RefTo,
   type Tx,
   type TxApplyIf,
   type TxCUD,
+  type TxMixin,
   TxProcessor,
-  type TxResult
+  type TxResult,
+  type TxUpdateDoc
 } from '@hcengineering/core'
 import platform, { getResource, PlatformError, translate } from '@hcengineering/platform'
 import { BasePresentationMiddleware, type PresentationMiddleware } from '@hcengineering/presentation'
@@ -281,6 +285,20 @@ export class AggregationMiddleware extends BasePresentationMiddleware implements
   }
 }
 
+// servone: ref and enum fields whose new value is sent; free-text fields (title, description) only appear by name.
+const TRACKED_VALUES = new Set(['status', 'priority', 'assignee'])
+
+function describeChanges (changes: DocumentUpdate<Doc> | MixinUpdate<Doc, Doc>): Record<string, string | number | string[] | null> {
+  const changed: string[] = []
+  const described: Record<string, string | number | string[] | null> = { changed }
+  for (const [key, op] of Object.entries(changes)) {
+    // `$push`, `$inc`, `$unset` and friends hold the field names one level down.
+    changed.push(...(key.startsWith('$') ? Object.keys(op) : [key]))
+    if (TRACKED_VALUES.has(key) && (typeof op === 'string' || typeof op === 'number' || op === null)) described[key] = op
+  }
+  return described
+}
+
 /**
  * @public
  */
@@ -302,28 +320,44 @@ export class AnalyticsMiddleware extends BasePresentationMiddleware implements P
   }
 
   async tx (tx: Tx): Promise<TxResult> {
-    void this.handleTx(tx)
-    return await this.provideTx(tx)
+    this.handleTx(tx)
+    try {
+      return await this.provideTx(tx)
+    } catch (err) {
+      // servone: the pipeline above turns write errors into a status toast, so this is the last place a failed save is visible.
+      Analytics.handleEvent('doc_failed', { object_class: (tx as TxCUD<Doc>).objectClass ?? tx._class })
+      throw err
+    }
   }
 
-  private async handleTx (...txes: Tx[]): Promise<void> {
+  private handleTx (...txes: Tx[]): void {
     for (const etx of txes) {
       if (etx._class === core.class.TxApplyIf) {
         const applyIf = etx as TxApplyIf
-        void this.handleTx(...applyIf.txes)
+        this.handleTx(...applyIf.txes)
       }
       if (TxProcessor.isExtendsCUD(etx._class)) {
         const cud = etx as TxCUD<Doc>
         if (cud.objectClass === core.class.BenchmarkDoc) continue
         const _class = this.client.getHierarchy().getClass(cud.objectClass)
         if (_class.label !== undefined) {
-          const label = await translate(_class.label, {}, 'en')
+          // servone: stable names with class and field ids; `Update ${label}` mixed languages and said nothing about what changed.
+          const target = {
+            object_class: cud.objectClass,
+            object_id: cud.objectId,
+            space: cud.objectSpace,
+            attached_to_class: cud.attachedToClass,
+            collection: cud.collection
+          }
           if (cud._class === core.class.TxCreateDoc) {
-            Analytics.handleEvent(`Create ${label}`)
-          } else if (cud._class === core.class.TxUpdateDoc || cud._class === core.class.TxMixin) {
-            Analytics.handleEvent(`Update ${label}`)
+            Analytics.handleEvent('doc_created', target)
+          } else if (cud._class === core.class.TxUpdateDoc) {
+            Analytics.handleEvent('doc_updated', { ...target, ...describeChanges((cud as TxUpdateDoc<Doc>).operations) })
+          } else if (cud._class === core.class.TxMixin) {
+            const mixinTx = cud as TxMixin<Doc, Doc>
+            Analytics.handleEvent('doc_updated', { ...target, mixin: mixinTx.mixin, ...describeChanges(mixinTx.attributes) })
           } else if (cud._class === core.class.TxRemoveDoc) {
-            Analytics.handleEvent(`Delete ${label}`)
+            Analytics.handleEvent('doc_deleted', target)
           }
         }
       }

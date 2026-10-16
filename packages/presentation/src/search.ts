@@ -103,6 +103,10 @@ async function doFulltextSearch (
 
 const categoriesByContext = new Map<string, ObjectSearchCategory[]>()
 
+// servone: Card is hidden (mail threads and workflow jobs run on it), so its results would open the raw Card UI.
+// presentation can't import @hcengineering/card; id comes from card-resources plugin.ts.
+export const HIDDEN_SEARCH_CATEGORIES = new Set<string>(['card:completion:CardCategory'])
+
 export async function searchFor (
   context: 'mention' | 'spotlight',
   query: string,
@@ -112,7 +116,9 @@ export async function searchFor (
   const client = getClient()
   let categories = categoriesByContext.get(context)
   if (categories === undefined) {
-    categories = await client.findAll(plugin.class.ObjectSearchCategory, { context })
+    categories = (await client.findAll(plugin.class.ObjectSearchCategory, { context })).filter(
+      (it) => !HIDDEN_SEARCH_CATEGORIES.has(it._id)
+    )
 
     categories.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))
     categoriesByContext.set(context, categories)

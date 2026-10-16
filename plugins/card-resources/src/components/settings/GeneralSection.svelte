@@ -206,7 +206,8 @@
       kind={'tertiary'}
       on:click={handleExport}
     />
-    {#if isEditable}
+    <!-- servone: no delete for a MasterTag; `removed: true` deletes its cards. Card Studio archives it instead. -->
+    {#if isEditable && masterTag._class !== card.class.MasterTag}
       <ButtonIcon icon={IconDelete} size={'large'} kind={'tertiary'} on:click={handleDelete} />
     {/if}
   </div>

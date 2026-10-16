@@ -22,6 +22,7 @@ const CompressionPlugin = require('compression-webpack-plugin')
 const DefinePlugin = require('webpack').DefinePlugin
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { Configuration } = require('webpack')
+const { servonePlugins, servoneSetupMiddlewares } = require('./servone.webpack.js')
 
 const mode = process.env.NODE_ENV || 'development'
 const prod = mode === 'production'
@@ -44,17 +45,25 @@ const dev =
   devServerTest
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 
-const doValidate = !prod || process.env.DO_VALIDATE === 'true'
+// servone: DO_VALIDATE=false skips fork-ts-checker in dev (own 2 GB heap per rebuild); servone-ui's svelte-check is the type gate.
+const doValidate = process.env.DO_VALIDATE === 'true' || (!prod && process.env.DO_VALIDATE !== 'false')
 
 const useCache = process.env.USE_CACHE === 'true'
+
+// servone: dev maps off by default: with cheap-module maps bundle.js was 42 MB (46% inline maps) + 28 MB vendors per reload.
+// SERVONE_SOURCEMAP=1 -> eval-cheap-module-source-map, SERVONE_FULL_SOURCEMAP=1 -> eval-source-map (upstream).
+const devSourceMaps = process.env.SERVONE_SOURCEMAP === '1' || process.env.SERVONE_FULL_SOURCEMAP === '1'
 
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
 const devProxy = {
   '/account': {
-    target: 'http://huly.local:3000',
+    target: process.env.DEV_ACCOUNT_URL ?? 'http://huly.local:3000',
     changeOrigin: true,
     pathRewrite: { '^/account': '' },
+    // servone: account service sets cookie Domain from the proxied Host; a remote backend's `.up.railway.app`
+    // cookie is dropped on localhost and the stale one causes a /login loop.
+    cookieDomainRewrite: 'localhost',
     logLevel: 'debug'
   },
   '/files': {
@@ -226,11 +235,37 @@ module.exports = [
       ? {
           type: 'filesystem',
           allowCollectingMemory: true,
+          // servone: default keeps 10 compilations in memory; 1 cuts dev-server growth across rebuilds.
+          maxMemoryGenerations: 1,
           cacheLocation: path.resolve(__dirname, '.build_dev')
         }
       : undefined,
+    experiments:
+      !prod && process.env.SERVONE_LAZY === '1'
+        ? {
+            lazyCompilation: {
+              imports: true,
+              entries: false,
+              test:
+                process.env.SERVONE_EAGER === '0'
+                  ? undefined
+                  : (module) => {
+                      const eager = new RegExp(
+                        process.env.SERVONE_EAGER ?? '((workbench|view|tracker)-resources|-assets|[\\\\/]lang[\\\\/])'
+                      )
+                      return !eager.test(module.nameForCondition() ?? '')
+                    }
+            }
+          }
+        : undefined,
     entry: {
-      bundle: ['@hcengineering/theme/styles/global.scss', ...(dev ? ['./src/main-dev.ts'] : ['./src/main.ts'])]
+      bundle: [
+        // servone: SVELTE_TRACE=1 makes `effect_update_depth_exceeded` name the offending component.
+        ...(dev && process.env.SVELTE_TRACE === '1' ? ['svelte/internal/flags/tracing'] : []),
+        '@hcengineering/theme/styles/global.scss',
+        '@servone/theme/styles/index.css',
+        ...(dev ? ['./src/main-dev.ts'] : ['./src/main.ts'])
+      ]
     },
     ignoreWarnings: [
       {
@@ -242,15 +277,23 @@ module.exports = [
     resolve: {
       symlinks: true,
       alias: {
-        svelte: path.resolve('node_modules', 'svelte/src/runtime'),
-        '@hcengineering/platform-rig/profiles/ui/svelte': path.resolve('node_modules', 'svelte/src/runtime')
+        // servone: Svelte 5 ships no `src/runtime`; let the package `exports` map resolve `svelte`.
+        // servone: bare `@hcengineering/ui` -> shadcn skin; deep `@hcengineering/ui/src/...` paths still reach the original.
+        '@hcengineering/ui$': path.resolve(__dirname, '../../packages/servone-ui/src/index.ts'),
+        // servone: shadcn-svelte CLI output imports `$lib/...`.
+        $lib: path.resolve(__dirname, '../../packages/servone-ui/src/lib'),
+        // servone: side-effect import of a type-only shim; nothing to load at runtime.
+        '@hcengineering/platform-rig/profiles/ui/svelte': false
       },
+      // servone: shadcn-svelte CLI files use extension-ful TS imports (`./button.svelte`, `$lib/utils.js`).
+      extensionAlias: { '.js': ['.ts', '.js'] },
       fallback: {
         crypto: false
       },
       extensions: ['.mjs', '.js', '.svelte', '.ts'],
       mainFields: ['svelte', 'browser', 'module', 'main'],
-      conditionNames: ['svelte', 'browser', 'import']
+      // servone: Svelte 5 picks its DEV/prod runtime via `esm-env` export conditions.
+      conditionNames: ['svelte', 'browser', 'import', ...(prod ? ['production'] : ['development'])]
     },
     output: {
       path: __dirname + '/dist',
@@ -289,9 +332,25 @@ module.exports = [
             target: 'es2021',
             keepNames: true,
             minify: prod,
-            sourcemap: true
+            sourcemap: prod || devSourceMaps
           },
           exclude: /node_modules/
+        },
+        {
+          // servone: svelte-loader's emitted `X.svelte.0.css` resolves to the .svelte file, which @xyflow/svelte's
+          // `"sideEffects": ["*.css"]` misses, so webpack dropped every component style.
+          test: /[\\/]@xyflow[\\/]svelte[\\/].*\.svelte\.\d+\.css$/,
+          sideEffects: true
+        },
+        {
+          // servone: rune modules (bits-ui, svelte-toolbelt, @servone/ui) must go through svelte.compileModule.
+          test: /\.svelte\.(js|ts)$/,
+          use: [
+            {
+              loader: 'svelte-loader',
+              options: { compilerOptions: { dev: !prod } }
+            }
+          ]
         },
         {
           test: /\.svelte$/,
@@ -300,15 +359,23 @@ module.exports = [
               loader: 'svelte-loader',
               options: {
                 compilerOptions: {
-                  dev: !prod
+                  dev: !prod,
+                  // servone: keeps `new Component({ target })` working for upstream call sites (ui Root, text-editor node views).
+                  compatibility: { componentApi: 4 }
                 },
                 emitCss: true,
-                hotReload: !prod,
+                // servone: devServer.hot is off, so the HMR wrapper would be dead code.
+                hotReload: false,
                 preprocess: require('svelte-preprocess')({
                   postcss: true,
-                  sourceMap: true,
+                  sourceMap: prod || devSourceMaps,
                   scss: {
                     implementation: sass
+                  },
+                  // servone: verbatim imports keep `import { store }` used only as `$store`; explicit target stops TS
+                  // downleveling object rest in node_modules .svelte (bits-ui), which breaks `$bindable()` in `$props()`.
+                  typescript: {
+                    compilerOptions: { verbatimModuleSyntax: true, target: 'ESNext' }
                   }
                 }),
                 hotOptions: {
@@ -346,8 +413,12 @@ module.exports = [
           use: [
             // prod ? MiniCssExtractPlugin.loader :
             'style-loader',
-            'css-loader',
-            'postcss-loader'
+            { loader: 'css-loader', options: { sourceMap: !prod && devSourceMaps } },
+            {
+              loader: 'postcss-loader',
+              // servone: config lookup starts at the processed file's dir, so servone-theme CSS missed this Tailwind config.
+              options: { postcssOptions: { config: path.resolve(__dirname, 'postcss.config.js') } }
+            }
           ]
         },
 
@@ -356,7 +427,7 @@ module.exports = [
           use: [
             // prod ? MiniCssExtractPlugin.loader :
             'style-loader',
-            'css-loader',
+            { loader: 'css-loader', options: { sourceMap: !prod && devSourceMaps } },
             'postcss-loader',
             {
               loader: "sass-loader",
@@ -425,6 +496,7 @@ module.exports = [
     },
     mode,
     plugins: [
+      ...servonePlugins(prod),
       ...(prod
         ? [
             new BundleAnalyzerPlugin({
@@ -438,13 +510,16 @@ module.exports = [
           viewport: 'width=device-width, initial-scale=1.0'
         }
       }),
-      ...(prod ? [new CompressionPlugin()] : []),
+      ...(prod ? [new CompressionPlugin(), new CompressionPlugin({ algorithm: 'brotliCompress', filename: '[path][base].br' })] : []),
       // new MiniCssExtractPlugin({
       //   filename: '[name].[id][contenthash].css'
       // }),
       new Dotenv({ path: prod ? '.env-prod' : '.env' }),
       new DefinePlugin({
-        'process.env.CLIENT_TYPE': JSON.stringify(process.env.CLIENT_TYPE)
+        'process.env.CLIENT_TYPE': JSON.stringify(process.env.CLIENT_TYPE),
+        // servone: PostHog key and host for dev/prod/src/posthog.ts, set as front-image build args.
+        'process.env.POSTHOG_KEY': JSON.stringify(process.env.POSTHOG_KEY),
+        'process.env.POSTHOG_HOST': JSON.stringify(process.env.POSTHOG_HOST)
       }),
       ...(doValidate ? [new ForkTsCheckerWebpackPlugin()] : [])
     ],
@@ -472,9 +547,16 @@ module.exports = [
       ],
       aggregateTimeout: 100,
       followSymlinks: false,
-      poll: 250
+      // servone: polling (for Docker/NFS) took 54% of the dev-server main thread idle on macOS; off = fsevents.
+      poll: process.env.SERVONE_WATCH_POLL === '1' ? 250 : false
     },
-    devtool: prod ? 'source-map' : 'eval-source-map', // 'inline-source-map',
+    devtool: prod
+      ? 'source-map'
+      : process.env.SERVONE_FULL_SOURCEMAP === '1'
+        ? 'eval-source-map'
+        : process.env.SERVONE_SOURCEMAP === '1'
+          ? 'eval-cheap-module-source-map'
+          : 'eval',
     devServer: {
       static: {
         directory: path.resolve(__dirname, 'public'),
@@ -487,7 +569,8 @@ module.exports = [
       },
       host: '0.0.0.0',
       allowedHosts: 'all',
-      hot: true,
+      hot: false,
+      liveReload: process.env.SERVONE_LIVERELOAD !== '0',
       client: {
         logging: 'info',
         overlay: {
@@ -502,6 +585,7 @@ module.exports = [
         },
         progress: false
       },
+      setupMiddlewares: servoneSetupMiddlewares,
       proxy: proxy[clientType]
     }
   }

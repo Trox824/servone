@@ -556,7 +556,7 @@
                       {@const stats = statsByWorkspace.get(workspace.uuid ?? '')}
                       <!-- svelte-ignore a11y-click-events-have-key-events -->
                       <!-- svelte-ignore a11y-no-static-element-interactions -->
-                      <tr class="flex fs-title cursor-pointer focused-button bordered" id={`${workspace.uuid}`}>
+                      <div class="flex fs-title cursor-pointer focused-button bordered" id={`${workspace.uuid}`}>
                         <div class="label overflow-label p-1 flex flex-row-center" style:width={'15rem'}>
                           {wsName}
                           {#if stats}
@@ -718,7 +718,7 @@
                             />
                           {/if}
                         </div>
-                      </tr>
+                      </div>
                     {/each}
                   </Expandable>
                 {/if}
@@ -763,7 +763,7 @@
         <Scroller maxHeight={40} noStretch={true}>
           <div class="mr-4">
             {#each accounts as account}
-              <tr class="flex focused-button bordered min-h-8">
+              <div class="flex focused-button bordered min-h-8">
                 <div class="p-1 flex flex-col w-60">
                   <div class="label overflow-label flex flex-row-center">
                     {account.firstName}
@@ -804,7 +804,7 @@
                     />
                   {/if}
                 </div>
-              </tr>
+              </div>
             {/each}
           </div>
         </Scroller>

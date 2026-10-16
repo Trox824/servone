@@ -112,9 +112,10 @@
 
   {#if viewDate}
     <div class="caption">
+      <!-- servone: 'short' is "Thứ 2" in Chrome's vi locale and wraps in the 2rem column. -->
       {#each [...Array(7).keys()] as dayOfWeek}
         <span class="weekdays ui-regular-12">
-          {capitalizeFirstLetter(getWeekDayName(day(firstDayOfCurrentMonth, dayOfWeek), 'short'))}
+          {capitalizeFirstLetter(getWeekDayName(day(firstDayOfCurrentMonth, dayOfWeek), 'narrow'))}
         </span>
       {/each}
     </div>

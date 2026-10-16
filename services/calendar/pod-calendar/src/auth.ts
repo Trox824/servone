@@ -38,14 +38,14 @@ import { GoogleEmail, SCOPES, State, Token } from './types'
 import { addUserByEmail, getGoogleClient, removeIntegrationSecret, removeUserByEmail } from './utils'
 import { WatchController } from './watch'
 
-interface AuthResult {
+export interface AuthResult {
   success: boolean
   email: GoogleEmail
   personId?: PersonId
 }
 
 export class AuthController {
-  private readonly oAuth2Client: OAuth2Client
+  readonly oAuth2Client: OAuth2Client
   private readonly googleClient: calendar_v3.Calendar
   email: GoogleEmail | undefined
 
@@ -81,6 +81,22 @@ export class AuthController {
       },
       { workspace: state.workspace, user: state.accountUuid }
     )
+  }
+
+  // servone: runs a callback under the same per-user lock createAndSync takes
+  static async withController<T> (
+    ctx: MeasureContext,
+    accountClient: AccountClient,
+    integrationClient: IntegrationClient,
+    state: State,
+    run: (controller: AuthController) => Promise<T>
+  ): Promise<T> {
+    const mutex = await lock(`${state.workspace}:${state.accountUuid}`)
+    try {
+      return await run(new AuthController(ctx, accountClient, integrationClient, state))
+    } finally {
+      mutex()
+    }
   }
 
   static async signout (
@@ -137,7 +153,10 @@ export class AuthController {
   }
 
   private async process (code: string, state: State): Promise<void> {
-    const authRes = await this.authorize(code, state)
+    await this.complete(await this.authorize(code, state))
+  }
+
+  async complete (authRes: AuthResult): Promise<void> {
     if (authRes.success && authRes.personId !== undefined) {
       const client = await getClient(this.user.workspace)
       const txOp = new TxOperations(client, authRes.personId)
@@ -170,9 +189,13 @@ export class AuthController {
 
   private async authorize (code: string, state: State): Promise<AuthResult> {
     const token = await this.oAuth2Client.getToken(code)
-    this.oAuth2Client.setCredentials(token.tokens)
+    return await this.authorizeTokens(token.tokens, state)
+  }
+
+  async authorizeTokens (tokens: Credentials, state: State): Promise<AuthResult> {
+    this.oAuth2Client.setCredentials(tokens)
     const email = await this.getEmail()
-    const providedScopes = token.tokens.scope?.split(' ') ?? []
+    const providedScopes = tokens.scope?.split(' ') ?? []
     for (const scope of SCOPES) {
       if (providedScopes.findIndex((p) => p === scope) === -1) {
         this.ctx.error(`Not all scopes provided, provided: ${providedScopes.join(', ')} required: ${SCOPES.join(', ')}`)

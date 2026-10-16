@@ -55,15 +55,21 @@ export const pluginConfigurationStore = writable<ConfigurationManager>(pluginCon
 
 const pluginConfigQuery = createQuery(true)
 
+/**
+ * @public
+ *
+ * servone: set when a plugin is toggled. The model is filtered at load, so it applies only after a reload,
+ * which Settings > Configuration offers instead of force-reloading every user's tabs.
+ */
+export const pluginConfigurationChanged = writable<boolean>(false)
+
 addTxListener((txes: Tx[]) => {
   for (const tx of txes) {
     if (tx._class === core.class.TxUpdateDoc) {
       const cud = tx as TxUpdateDoc<PluginConfiguration>
       if (cud.objectClass === core.class.PluginConfiguration) {
         if (cud.operations.enabled !== undefined) {
-          // Plugin enabled/disabled we need to refresh
-          console.log('reload due to changed plugin configuration')
-          location.reload()
+          pluginConfigurationChanged.set(true)
         }
       }
     }

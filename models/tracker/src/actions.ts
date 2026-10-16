@@ -477,30 +477,6 @@ export function createActions (builder: Builder, issuesId: string, componentsId:
     builder,
     {
       action: view.actionImpl.AttributeSelector,
-      actionPopup: tracker.component.ComponentEditor,
-      actionProps: {
-        attribute: 'component',
-        isAction: true
-      },
-      label: tracker.string.Component,
-      icon: tracker.icon.Component,
-      keyBinding: ['keyM->keyT'],
-      input: 'any',
-      category: tracker.category.Tracker,
-      target: tracker.class.Issue,
-      context: {
-        mode: ['context', 'browser'],
-        application: tracker.app.Tracker,
-        group: 'edit'
-      }
-    },
-    tracker.action.SetComponent
-  )
-
-  createAction(
-    builder,
-    {
-      action: view.actionImpl.AttributeSelector,
       actionPopup: tracker.component.MilestoneEditor,
       actionProps: {
         attribute: 'milestone',

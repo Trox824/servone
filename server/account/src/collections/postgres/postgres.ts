@@ -13,6 +13,7 @@
 // limitations under the License.
 //
 import { type Sql, type TransactionSql } from 'postgres'
+import platform, { PlatformError, Severity, Status } from '@hcengineering/platform'
 import {
   type Data,
   type Version,
@@ -836,6 +837,16 @@ export class PostgresAccountDB implements AccountDB {
   }
 
   async assignWorkspace (accountUuid: AccountUuid, workspaceUuid: WorkspaceUuid, role: AccountRole): Promise<void> {
+    // A deactivated row blocks re-assignment; reactivation is the only path back.
+    const isDisabled = await this.withRetry(async (rTx) => {
+      const res =
+        await rTx`SELECT disabled FROM ${this.client(this.getWsMembersTableName())} WHERE workspace_uuid = ${workspaceUuid} AND account_uuid = ${accountUuid}`
+      return res[0]?.disabled === true
+    })
+    if (isDisabled) {
+      throw new PlatformError(new Status(Severity.ERROR, platform.status.Forbidden, {}))
+    }
+
     await this.withRetry(
       async (rTx) =>
         await rTx`INSERT INTO ${this.client(this.getWsMembersTableName())} (workspace_uuid, account_uuid, role) VALUES (${workspaceUuid}, ${accountUuid}, ${role})`
@@ -869,10 +880,21 @@ export class PostgresAccountDB implements AccountDB {
     )
   }
 
+  async setWorkspaceMemberDisabled (
+    accountUuid: AccountUuid,
+    workspaceUuid: WorkspaceUuid,
+    disabled: boolean
+  ): Promise<void> {
+    await this.withRetry(
+      async (rTx) =>
+        await rTx`UPDATE ${this.client(this.getWsMembersTableName())} SET disabled = ${disabled} WHERE workspace_uuid = ${workspaceUuid} AND account_uuid = ${accountUuid}`
+    )
+  }
+
   async getWorkspaceRole (accountUuid: AccountUuid, workspaceUuid: WorkspaceUuid): Promise<AccountRole | null> {
     return await this.withRetry(async (rTx) => {
       const res =
-        await rTx`SELECT role FROM ${this.client(this.getWsMembersTableName())} WHERE workspace_uuid = ${workspaceUuid} AND account_uuid = ${accountUuid}`
+        await rTx`SELECT role FROM ${this.client(this.getWsMembersTableName())} WHERE workspace_uuid = ${workspaceUuid} AND account_uuid = ${accountUuid} AND NOT disabled`
 
       return res[0]?.role ?? null
     })
@@ -881,7 +903,7 @@ export class PostgresAccountDB implements AccountDB {
   async getWorkspaceRoles (accountUuid: AccountUuid): Promise<Map<WorkspaceUuid, AccountRole>> {
     return await this.withRetry(async (rTx) => {
       const res =
-        await rTx`SELECT workspace_uuid, role FROM ${this.client(this.getWsMembersTableName())} WHERE account_uuid = ${accountUuid}`
+        await rTx`SELECT workspace_uuid, role FROM ${this.client(this.getWsMembersTableName())} WHERE account_uuid = ${accountUuid} AND NOT disabled`
 
       return new Map(res.map((it) => [it.workspace_uuid as WorkspaceUuid, it.role]))
     })
@@ -890,11 +912,12 @@ export class PostgresAccountDB implements AccountDB {
   async getWorkspaceMembers (workspaceUuid: WorkspaceUuid): Promise<WorkspaceMemberInfo[]> {
     return await this.withRetry(async (rTx) => {
       const res: any =
-        await rTx`SELECT account_uuid, role FROM ${this.client(this.getWsMembersTableName())} WHERE workspace_uuid = ${workspaceUuid}`
+        await rTx`SELECT account_uuid, role, disabled FROM ${this.client(this.getWsMembersTableName())} WHERE workspace_uuid = ${workspaceUuid}`
 
       return res.map((p: any) => ({
         person: p.account_uuid,
-        role: p.role
+        role: p.role,
+        disabled: p.disabled
       }))
     })
   }
@@ -928,7 +951,7 @@ export class PostgresAccountDB implements AccountDB {
            FROM ${this.getWsMembersTableName()} as m
            INNER JOIN ${this.workspace.getTableName()} as w ON m.workspace_uuid = w.uuid
            INNER JOIN ${this.workspaceStatus.getTableName()} as s ON s.workspace_uuid = w.uuid
-           WHERE m.account_uuid = $1
+           WHERE m.account_uuid = $1 AND NOT m.disabled
            ORDER BY s.last_visit DESC
     `
 

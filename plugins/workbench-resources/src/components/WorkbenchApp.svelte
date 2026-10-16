@@ -31,20 +31,16 @@
 {#if $location.path[0] === workbenchId || $location.path[0] === workbenchRes.component.WorkbenchApp}
   {#key $location.path[1]}
     {#await connect(getMetadata(workbenchRes.metadata.PlatformTitle) ?? 'Platform')}
-      <AppLoading>
+      <!-- servone: error goes to AppLoading's warning row instead of muted text beside the spinner. -->
+      <AppLoading error={$error}>
         {#if ($workspaceCreating ?? -1) >= 0}
           <div class="ml-1">
             <Label label={workbenchRes.string.WorkspaceCreating} />
             {$workspaceCreating} %
           </div>
         {/if}
-        {#if $error}
-          <div class="ml-2">
-            {$error}
-          </div>
-        {/if}
         {#if $upgradeDownloadProgress >= 0}
-          <div class="ml-1" class:ml-2={$error === undefined}>
+          <div class="ml-1">
             <Label label={workbench.string.UpgradeDownloadProgress} params={{ percent: $upgradeDownloadProgress }} />
           </div>
         {/if}

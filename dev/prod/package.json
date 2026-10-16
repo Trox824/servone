@@ -46,6 +46,8 @@
     "svelte-loader": "^3.2.0",
     "svelte-preprocess": "^5.1.4",
     "svgo-loader": "^3.0.0",
+    "tailwindcss": "^4.1.13",
+    "@tailwindcss/postcss": "^4.1.13",
     "ts-loader": "^9.2.5",
     "typescript": "^5.9.3",
     "update-browserslist-db": "^1.2.3",
@@ -246,6 +248,8 @@
     "@hcengineering/text-editor-assets": "workspace:^0.7.0",
     "@hcengineering/text-editor-resources": "workspace:^0.7.0",
     "@hcengineering/theme": "workspace:^0.7.0",
+    "@servone/theme": "workspace:^0.7.0",
+    "@servone/ui": "workspace:^0.7.0",
     "@hcengineering/time": "workspace:^0.7.0",
     "@hcengineering/time-assets": "workspace:^0.7.0",
     "@hcengineering/time-resources": "workspace:^0.7.0",
@@ -295,7 +299,9 @@
     "@hcengineering/rating-assets": "workspace:^0.7.0",
     "@hcengineering/rating-resources": "workspace:^0.7.0",
     "readable-stream": "^4.7.0",
-    "svelte": "^4.2.20"
+    "svelte": "^4.2.20",
+    "posthog-js": "^1.434.15",
+    "@sentry/browser": "^11.6.0"
   },
   "bashScripts": {
     "_phase:validate": "rm -rf ./types && compile validate",

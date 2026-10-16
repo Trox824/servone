@@ -289,7 +289,7 @@
 
     if (empty) {
       if (existing !== undefined) {
-        await client.remove(existing)
+        await removeStatus(existing)
       }
       finishPopup()
       return
@@ -311,9 +311,19 @@
     finishPopup()
   }
 
+  // servone: a doc holding a notifications pause (servone-ui lib/notify/pause.ts) must outlive a cleared status.
+  async function removeStatus (doc: WorkspaceMemberStatus): Promise<void> {
+    const fresh = await client.findOne(contact.class.WorkspaceMemberStatus, { _id: doc._id })
+    if (fresh !== undefined && 'servonePausedUntil' in fresh) {
+      await client.update(fresh, { message: '', $unset: { clearAt: true } })
+    } else {
+      await client.remove(doc)
+    }
+  }
+
   async function clearAll (): Promise<void> {
     if (existing !== undefined) {
-      await client.remove(existing)
+      await removeStatus(existing)
     }
     message = ''
     preset = 'custom'

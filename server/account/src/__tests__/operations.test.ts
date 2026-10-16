@@ -59,9 +59,11 @@ import {
   createAccessLink,
   getSubscriptions,
   leaveWorkspace,
+  deactivateWorkspaceMember,
   checkJoin,
   mergeSpecifiedPersons,
-  canMergeSpecifiedPersons
+  canMergeSpecifiedPersons,
+  getInviteInfo
 } from '../operations'
 import { accountPlugin } from '../plugin'
 
@@ -133,6 +135,10 @@ describe('account operations', () => {
     getWorkspaceRole: jest.fn(),
     getWorkspaceMembers: jest.fn(),
     unassignWorkspace: jest.fn(),
+    setWorkspaceMemberDisabled: jest.fn(),
+    apiToken: {
+      update: jest.fn()
+    },
     updateWorkspaceRole: jest.fn(),
     person: {
       findOne: jest.fn()
@@ -1956,6 +1962,84 @@ describe('account operations', () => {
           name: 'Owner User',
           token: expect.any(String)
         })
+      })
+
+      test('should disable a kicked member instead of deleting the row', async () => {
+        jest.spyOn(utils, 'getAllTransactors').mockReturnValue([])
+        ;(decodeTokenVerbose as jest.Mock).mockReturnValue({
+          account: ownerAccount,
+          workspace: mockWorkspace.uuid,
+          extra: {}
+        })
+        ;(mockDb.getWorkspaceRole as jest.Mock).mockImplementation(async (accountId: AccountUuid) =>
+          accountId === ownerAccount ? AccountRole.Owner : AccountRole.User
+        )
+
+        const result = await leaveWorkspace(mockCtx, mockDb, mockBranding, mockToken, { account: maintainerAccount })
+
+        expect(result).toBeNull()
+        expect(mockDb.setWorkspaceMemberDisabled).toHaveBeenCalledWith(maintainerAccount, mockWorkspace.uuid, true)
+        expect(mockDb.apiToken.update).toHaveBeenCalledWith(
+          { accountUuid: maintainerAccount, workspaceUuid: mockWorkspace.uuid, revoked: false },
+          { revoked: true }
+        )
+        expect(mockDb.unassignWorkspace).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('deactivateWorkspaceMember', () => {
+      const memberParams = { account: ownerAccount }
+
+      test('should refuse self deactivation', async () => {
+        ;(decodeTokenVerbose as jest.Mock).mockReturnValue({
+          account: ownerAccount,
+          workspace: mockWorkspace.uuid,
+          extra: {}
+        })
+        ;(mockDb.getWorkspaceRole as jest.Mock).mockResolvedValue(AccountRole.Owner)
+
+        await expect(
+          deactivateWorkspaceMember(mockCtx, mockDb, mockBranding, mockToken, { account: ownerAccount })
+        ).rejects.toThrow(new PlatformError(new Status(Severity.ERROR, platform.status.Forbidden, {})))
+
+        expect(mockDb.setWorkspaceMemberDisabled).not.toHaveBeenCalled()
+      })
+
+      test('should refuse to deactivate the last active owner', async () => {
+        ;(decodeTokenVerbose as jest.Mock).mockReturnValue({
+          account: systemAccountUuid,
+          workspace: mockWorkspace.uuid,
+          extra: {}
+        })
+        ;(mockDb.getWorkspaceMembers as jest.Mock).mockResolvedValue([
+          { person: ownerAccount, role: AccountRole.Owner, disabled: false },
+          { person: otherOwnerAccount, role: AccountRole.Owner, disabled: true }
+        ])
+
+        await expect(
+          deactivateWorkspaceMember(mockCtx, mockDb, mockBranding, mockToken, { account: ownerAccount })
+        ).rejects.toThrow(new PlatformError(new Status(Severity.ERROR, platform.status.Forbidden, {})))
+
+        expect(mockDb.setWorkspaceMemberDisabled).not.toHaveBeenCalled()
+      })
+
+      test('should refuse to deactivate a member with a higher role', async () => {
+        ;(decodeTokenVerbose as jest.Mock).mockReturnValue({
+          account: maintainerAccount,
+          workspace: mockWorkspace.uuid,
+          extra: {}
+        })
+        ;(mockDb.getWorkspaceRole as jest.Mock).mockResolvedValue(AccountRole.Maintainer)
+        ;(mockDb.getWorkspaceMembers as jest.Mock).mockResolvedValue([
+          { person: ownerAccount, role: AccountRole.Owner, disabled: false },
+          { person: maintainerAccount, role: AccountRole.Maintainer, disabled: false }
+        ])
+
+        await expect(
+          deactivateWorkspaceMember(mockCtx, mockDb, mockBranding, mockToken, memberParams)
+        ).rejects.toThrow(new PlatformError(new Status(Severity.ERROR, platform.status.Forbidden, {})))
+
+        expect(mockDb.setWorkspaceMemberDisabled).not.toHaveBeenCalled()
       })
     })
   })
@@ -3828,6 +3912,23 @@ describe('merge specified persons', () => {
 
       expect(await canMergeSpecifiedPersons(mockCtx, mockDb, mockBranding, 'test-token', params)).toBe(true)
       expect(mockDb.getWorkspaceRole).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('getInviteInfo', () => {
+    const invite = { id: 'invite-1', workspaceUuid: 'ws-1' as WorkspaceUuid, role: AccountRole.User }
+
+    test.each([
+      ['expired', { expiresOn: Date.now() - 1000, remainingUses: -1 }],
+      ['used up', { expiresOn: -1, remainingUses: 0 }]
+    ])('fails with ExpiredLink when the invite is %s', async (_, state) => {
+      const inviteDb = {
+        invite: { findOne: jest.fn().mockResolvedValue({ ...invite, ...state }) }
+      } as unknown as AccountDB
+
+      await expect(getInviteInfo(mockCtx, inviteDb, null, '', { inviteId: 'invite-1' })).rejects.toThrow(
+        new PlatformError(new Status(Severity.ERROR, platform.status.ExpiredLink, {}))
+      )
     })
   })
 })

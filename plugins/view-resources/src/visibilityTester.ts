@@ -17,9 +17,12 @@ import core, {
   checkPermission,
   checkForbiddenPermission,
   getCurrentAccount,
+  hasAccountRole,
   toIdMap,
   AccountRole,
+  type Class,
   type Doc,
+  type Ref,
   type Space,
   type TypedSpace
 } from '@hcengineering/core'
@@ -30,6 +33,9 @@ import { spaceSpace } from './utils'
 function isTypedSpace (space: Space): space is TypedSpace {
   return getClient().getHierarchy().isDerived(space._class, core.class.TypedSpace)
 }
+
+// servone: view-resources cannot depend on chunter, so the class id is a string.
+const CHANNEL_CLASS = 'chunter:class:Channel' as Ref<Class<Space>>
 
 function isSpaceOwner (space: Space): boolean {
   const currentAccount = getCurrentAccount()
@@ -89,6 +95,12 @@ export async function canArchiveSpace (doc?: Doc | Doc[]): Promise<boolean> {
   }
 
   const space = doc as Space
+
+  // servone: channels are owner-or-Maintainer only; mirrors canEditChannel in servone-ui chunter-resources/announce/policy.ts.
+  if (getClient().getHierarchy().isDerived(space._class, CHANNEL_CLASS)) {
+    const me = getCurrentAccount()
+    return hasAccountRole(me, AccountRole.Maintainer) || (space.owners ?? []).includes(me.uuid)
+  }
 
   if (isSpaceOwner(space)) {
     return true

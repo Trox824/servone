@@ -1,0 +1,3 @@
+# Servone per-developer files: cloud DB credentials, local front -> Railway backend URLs.
+/.env.servone-cloud
+/.servone-railway.json

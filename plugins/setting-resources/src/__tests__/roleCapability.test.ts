@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 
-import { AccountRole, type Account } from '@hcengineering/core'
+import { AccountRole, hasAccountRole, type Account } from '@hcengineering/core'
 import { RoleCapability } from '@hcengineering/setting'
 import { DEFAULT_INVITE_LINK_GENERATOR_ROLES } from '../inviteSettingsUtils'
 import { getRolesForCapability, hasRoleCapability } from '../roleCapability'
@@ -62,6 +62,51 @@ describe('roleCapability (Generate invite link permission)', () => {
       expect(
         hasRoleCapability(account(AccountRole.Owner), RoleCapability.GenerateInviteLink, undefined, [AccountRole.Owner])
       ).toBe(true)
+    })
+
+    it('treats an empty override list as unset and falls back to the defaults', () => {
+      const emptied = { [RoleCapability.GenerateInviteLink]: [], [RoleCapability.ManageInviteSettings]: [] }
+      expect(getRolesForCapability(RoleCapability.GenerateInviteLink, emptied, [AccountRole.Owner])).toEqual([
+        AccountRole.Owner
+      ])
+      expect(getRolesForCapability(RoleCapability.ManageInviteSettings, emptied)).toEqual([
+        AccountRole.Maintainer,
+        AccountRole.Owner
+      ])
+    })
+
+    it('grants an unknown capability to nobody', () => {
+      expect(hasRoleCapability(account(AccountRole.Owner), 'servone:capability:Unknown', undefined)).toBe(false)
+    })
+
+    it('lets only Maintainer and Owner manage invite settings by default', () => {
+      const can = (role: AccountRole): boolean =>
+        hasRoleCapability(account(role), RoleCapability.ManageInviteSettings, undefined)
+      expect(can(AccountRole.User)).toBe(false)
+      expect(can(AccountRole.Maintainer)).toBe(true)
+      expect(can(AccountRole.Owner)).toBe(true)
+    })
+
+    it('denies every guest role generating invite links by default', () => {
+      for (const role of [AccountRole.ReadOnlyGuest, AccountRole.DocGuest, AccountRole.Guest]) {
+        expect(hasRoleCapability(account(role), RoleCapability.GenerateInviteLink, undefined)).toBe(false)
+      }
+    })
+
+    it('ranks roles ReadOnlyGuest < DocGuest < Guest < User < Maintainer < Owner', () => {
+      const order = [
+        AccountRole.ReadOnlyGuest,
+        AccountRole.DocGuest,
+        AccountRole.Guest,
+        AccountRole.User,
+        AccountRole.Maintainer,
+        AccountRole.Owner
+      ]
+      order.forEach((role, i) => {
+        order.forEach((required, j) => {
+          expect(hasAccountRole({ role } as Account, required)).toBe(i >= j)
+        })
+      })
     })
   })
 })

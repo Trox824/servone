@@ -1,0 +1,29 @@
+{
+  "string": {
+    "GlobalProfile": "Hồ sơ cá nhân chung",
+    "EditProfile": "Sửa hồ sơ cá nhân",
+    "GeneralInformation": "Thông tin chung",
+    "FirstName": "Tên",
+    "LastName": "Họ",
+    "City": "Thành phố",
+    "Country": "Quốc gia",
+    "Bio": "Giới thiệu",
+    "FirstNamePlaceholder": "Nhập tên",
+    "LastNamePlaceholder": "Nhập họ",
+    "CityPlaceholder": "Nhập thành phố",
+    "CountryPlaceholder": "Nhập quốc gia",
+    "BioPlaceholder": "Giới thiệu đôi nét về bạn...",
+    "Save": "Lưu",
+    "Cancel": "Hủy",
+    "MaximumLength": "Tối đa {count} ký tự",
+    "Required": "Trường này là bắt buộc",
+    "ProfileVisibility": "Chế độ hiển thị hồ sơ",
+    "PublicProfile": "Công khai",
+    "PrivateProfile": "Riêng tư",
+    "PublicProfileDescription": "Mọi người đều xem được hồ sơ của bạn",
+    "PrivateProfileDescription": "Chỉ bạn xem được hồ sơ của mình",
+    "AddBioPlaceholder": "Thêm lời giới thiệu để mọi người biết về bạn...",
+    "AddLocationPlaceholder": "Thêm nơi sống của bạn...",
+    "ProfileNotAvailable": "Không xem được hồ sơ này"
+  }
+}

@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf8">
-  <title>Huly</title>
+  <title>Servone</title>
   <link rel="shortcut icon" data-default-href="/huly/favicon.ico" sizes="any" id="default-favicon">
   <script id="workspace-favicon-bootstrap">
     // Run before the application (and before assigning a fallback URL) during tab restoration.
@@ -30,9 +30,87 @@
     })()
   </script>
   <noscript><link rel="icon" href="/huly/favicon.ico"></noscript>
+  <!-- servone: boot frame, the only UI that exists while the bundle downloads (and if it fails).
+       Geometry mirrors packages/servone-ui/src/components/AppLoading.svelte; colours mirror servone-theme tokens.css. -->
+  <script>
+    (function () {
+      var stored = function (key) {
+        try { return localStorage.getItem(key) } catch (e) { return null }
+      }
+      var theme = stored('theme') || 'theme-system'
+      var isDark = theme === 'theme-dark' || (theme === 'theme-system' && matchMedia('(prefers-color-scheme: dark)').matches)
+      var lang = stored('lang') || (navigator.language.indexOf('vi') === 0 ? 'vi' : 'en')
+      var root = document.documentElement
+      root.setAttribute('data-boot-theme', isDark ? 'dark' : 'light')
+      root.setAttribute('data-boot-lang', lang === 'vi' ? 'vi' : 'en')
+      // Theme.svelte replaces the class list on mount; setting it now keeps the rem-based frame from resizing then.
+      root.className = stored('fontsize') || ''
+      // Login has its own layout; drawing the workbench frame there flashes a rail it never shows.
+      if (location.pathname.indexOf('/login') === 0 || stored('login:metadata:LoginEndpoint') === null) root.setAttribute('data-boot-page', 'login')
+    })()
+  </script>
+  <style>
+    .small-font { font-size: 14px; }
+    html:not(:has(#ui-root)), body:not(:has(#ui-root)) { background: #f0f1f2; }
+    #boot { position: fixed; inset: 0; display: flex; flex-direction: column; color: #62666d; font: 0.875rem/1.25rem system-ui, sans-serif; }
+    #boot-bar { display: none; flex: none; box-sizing: border-box; height: 2.5rem; padding: 0 5.5rem; align-items: center; }
+    #boot-search { box-sizing: border-box; width: 100%; height: 1.75rem; border: 1px solid #e6e7ea; border-radius: 0.5rem; }
+    #boot-body { flex: 1; display: flex; min-height: 0; }
+    #boot-rail { flex: none; width: 4.25rem; }
+    #boot-widgets { flex: none; width: calc(3.5rem + 1px); }
+    #boot-tabbar { display: none; flex: none; height: 4.25rem; }
+    #boot-card { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.75rem; margin: 0.5rem 0; border: 1px solid #e6e7ea; border-radius: 0.75rem; background: #fafafa; }
+    /* Phone shell: search strip on top, tab bar below, no side rails (mobile.css). */
+    @media (max-width: 480px) {
+      #boot-bar { display: flex; }
+      #boot-tabbar { display: block; }
+      #boot-rail, #boot-widgets { display: none; }
+      #boot-card { margin: 0; border-left: none; border-right: none; border-radius: 0; }
+    }
+    #boot-status, #boot-slow { display: flex; align-items: center; gap: 0.5rem; }
+    /* Same 1s reveal as AppLoading, which measures from page start and so continues this one. */
+    #boot-status { opacity: 0; animation: boot-reveal 200ms ease-out 1s forwards; }
+    /* 15s: AppLoading's SLOW_START_MS, the point where a stuck load is likelier than a slow one. */
+    #boot-slow { visibility: hidden; animation: boot-show 0s 15s forwards; }
+    #boot-slow a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+    #boot-spin { width: 1rem; height: 1rem; animation: boot-spin 1s linear infinite; }
+    [data-boot-lang='en'] #boot [lang='vi'], [data-boot-lang='vi'] #boot [lang='en'] { display: none; }
+    [data-boot-page='login'] #boot > * { display: none; }
+    /* :not(:has(#ui-root)): after mount the app owns the background, and a theme switch must not fight this. */
+    [data-boot-theme='dark']:not(:has(#ui-root)), [data-boot-theme='dark'] body:not(:has(#ui-root)) { background: #010102; }
+    [data-boot-theme='dark'] #boot { color: #8a8f98; }
+    [data-boot-theme='dark'] #boot-search { border-color: #23252a; }
+    [data-boot-theme='dark'] #boot-card { border-color: #23252a; background: #0f1011; }
+    body:has(#ui-root) > #boot { display: none; }
+    @keyframes boot-reveal { to { opacity: 1; } }
+    @keyframes boot-show { to { visibility: visible; } }
+    @keyframes boot-spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) {
+      #boot-status { animation-duration: 1ms; }
+      #boot-spin { animation-duration: 3s; }
+    }
+  </style>
 </head>
 
 <body style="margin: 0; overflow: hidden;">
+  <div id="boot">
+    <div id="boot-bar"><div id="boot-search"></div></div>
+    <div id="boot-body">
+      <div id="boot-rail"></div>
+      <div id="boot-card">
+        <div id="boot-status" role="status">
+          <svg id="boot-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>
+          <span lang="en">Loading Servone…</span><span lang="vi">Đang tải Servone…</span>
+        </div>
+        <div id="boot-slow">
+          <span lang="en">This is taking longer than usual. <a href="">Reload page</a></span>
+          <span lang="vi">Đang mất nhiều thời gian hơn bình thường. <a href="">Tải lại trang</a></span>
+        </div>
+      </div>
+      <div id="boot-widgets"></div>
+    </div>
+    <div id="boot-tabbar"></div>
+  </div>
 </body>
 
 </html>

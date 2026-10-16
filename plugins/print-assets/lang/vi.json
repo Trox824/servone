@@ -1,0 +1,10 @@
+{
+  "string": {
+    "PrintToPDF": "In ra PDF",
+    "PrintingDocumentOf": "Đang in tài liệu {current}/{total}",
+    "DownloadAll": "Tải xuống tất cả",
+    "PrintFailed": "In không thành công",
+    "PrintSettings": "Cài đặt in",
+    "LandscapeMode": "Khổ ngang"
+  }
+}

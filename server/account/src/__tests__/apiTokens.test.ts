@@ -38,7 +38,7 @@ jest.mock('@hcengineering/server-token', () => {
   }
   return {
     decodeTokenVerbose: jest.fn(),
-    decodeToken: jest.fn(),
+    decodeToken: jest.fn((raw: string) => (raw.startsWith('mocked-token') ? { extra: { apiTokenId: 'issued' } } : undefined)),
     TokenError,
     generateToken: jest.fn().mockImplementation((account: string, workspace: string, extra: any) => {
       return `mocked-token-${account}-${workspace}-${JSON.stringify(extra)}`

@@ -57,6 +57,7 @@
   export let displayedHours = 24
   export let startHour = 0
   export let startFromWeekStart = true
+  export let minColumnWidth = 200
   export let weekFormat: 'narrow' | 'short' | 'long' = 'long'
   export let showHeader: boolean = true
   export let showFooter: boolean = true
@@ -214,6 +215,7 @@
 
     events
       .filter((ev) => !ev.allDay)
+      .sort((a, b) => a.date - b.date)
       .forEach((event, i, arr) => {
         if (grid[event.day] === undefined) {
           grid[event.day] = {
@@ -426,7 +428,8 @@
       getGridOffset(endTime.mins, true)
     let cols = 1
     let index: number = 0
-    grid[event.day].columns.forEach((col, i) => {
+    // Servone: the drag-select preview can sit on a day with no events, which has no grid entry.
+    grid[event.day]?.columns.forEach((col, i) => {
       col.elements.forEach((el) => {
         if (el.id === event._id) {
           cols = el.cols
@@ -498,7 +501,9 @@
   }
 
   const getTimeZone = (): string => {
-    return new Intl.DateTimeFormat([], { timeZoneName: 'short' }).format(Date.now()).split(' ')[1]
+    // servone: split(' ')[1] assumed English word order; vi-VN puts the date second.
+    const parts = new Intl.DateTimeFormat([], { timeZoneName: 'short' }).formatToParts(Date.now())
+    return parts.find((part) => part.type === 'timeZoneName')?.value ?? ''
   }
 
   const getTopOffset = (date: Date): number => {
@@ -553,9 +558,9 @@
   })
 
   const calcColumnWidth = (calWidth: number): number => (calWidth - rem(3.5)) / displayedDaysCount
-  const needDecColumnWidth = (calWidth: number): boolean => calcColumnWidth(calWidth) < 200 && displayedDaysCount > 1
+  const needDecColumnWidth = (calWidth: number): boolean => calcColumnWidth(calWidth) < minColumnWidth && displayedDaysCount > 1
   const needIncColumnWidth = (calWidth: number): boolean =>
-    displayedDaysCount < initDisplayedDaysCount && (displayedDaysCount + 1) * 200 + rem(3.5) < calWidth
+    displayedDaysCount < initDisplayedDaysCount && (displayedDaysCount + 1) * minColumnWidth + rem(3.5) < calWidth
 
   const checkSizes = (element: HTMLElement | Element) => {
     calendarRect = element.getBoundingClientRect()
@@ -585,6 +590,39 @@
   const getMinutes = (exactly: number): number => {
     const roundStep = 60 / stepsPerHour
     return Math.round(exactly / roundStep) * roundStep
+  }
+
+  // Servone: press and drag on an empty slot selects a range in 15-minute steps, as in Google Calendar.
+  const STEP_MINUTES = 60 / stepsPerHour
+  let selection: { dayOfWeek: number, day: Date, anchor: number, startY: number, start: number, end: number } | null = null
+
+  function selectStart (e: MouseEvent, dayOfWeek: number, day: Date, hourOfDay: number): void {
+    if (e.button !== 0) return
+    e.preventDefault()
+    const anchor = (hourOfDay + startHour) * 60 + Math.floor((e.offsetY * 60) / cellHeight / STEP_MINUTES) * STEP_MINUTES
+    selection = { dayOfWeek, day, anchor, startY: e.clientY, start: anchor, end: anchor + STEP_MINUTES }
+    window.addEventListener('mousemove', selectMove)
+    window.addEventListener('mouseup', selectEnd, { once: true })
+  }
+
+  function selectMove (e: MouseEvent): void {
+    if (selection === null) return
+    const steps = Math.floor((e.clientY - selection.startY) * 60 / cellHeight / STEP_MINUTES + (e.clientY >= selection.startY ? 0 : 1))
+    const pointer = Math.min(Math.max(selection.anchor + steps * STEP_MINUTES, startHour * 60), displayedHours * 60 - STEP_MINUTES)
+    selection = { ...selection, start: Math.min(selection.anchor, pointer), end: Math.max(selection.anchor, pointer) + STEP_MINUTES }
+  }
+
+  function selectEnd (): void {
+    window.removeEventListener('mousemove', selectMove)
+    if (selection === null) return
+    const { day, start, end } = selection
+    const isRange = end - start > STEP_MINUTES
+    const date = new Date(day).setHours(0, start, 0, 0)
+    // After the click that follows mouseup, so the quick-create popover it opens is not dismissed by that click.
+    setTimeout(() => {
+      selection = null
+      dispatch('create', isRange ? { date: new Date(date), dueDate: new Date(day).setHours(0, end, 0, 0), withTime: true } : { date: new Date(date), withTime: true })
+    }, 0)
   }
 
   const getExactly = (e: MouseEvent, correction: boolean = false): number => {
@@ -1030,12 +1068,10 @@
           on:drop|preventDefault={(e) => {
             dragDrop(e, day, hourOfDay)
           }}
-          on:click|stopPropagation={() => {
-            dispatch('create', {
-              date: new Date(day.setHours(hourOfDay + startHour, 0, 0, 0)),
-              withTime: true
-            })
+          on:mousedown={(e) => {
+            selectStart(e, dayOfWeek, day, hourOfDay)
           }}
+          on:click|stopPropagation
         />
       {/each}
       {#if hourOfDay === displayedHours - startHour - 1}
@@ -1116,6 +1152,18 @@
         {/if}
       {/each}
     {/key}
+    {#if selection !== null}
+      {@const rect = getRect({ _id: 'servone-selection', allDay: false, date: new Date(selection.day).setHours(0, selection.start, 0, 0), dueDate: new Date(selection.day).setHours(0, selection.end, 0, 0), day: selection.dayOfWeek, blockTime: false, access: 'owner' })}
+      <div
+        class="calendar-selection"
+        style:top={`${rect.top}px`}
+        style:bottom={`${rect.bottom}px`}
+        style:left={`${rect.left}px`}
+        style:right={`${rect.right}px`}
+      >
+        {getTimeFormat(Math.floor(selection.start / 60), selection.start % 60)} – {getTimeFormat(Math.floor(selection.end / 60), selection.end % 60)}
+      </div>
+    {/if}
     {#key currentDate}
       {#if nowLineTop !== -1}
         <div data-now={timeNow} class="now-line{nowLineStyle}" style:top={`${nowLineTop}px`} />
@@ -1220,6 +1268,16 @@
   }
   .clear-cell {
     background-color: $timeline-bg-color;
+  }
+  .calendar-selection {
+    position: absolute;
+    padding: 0.125rem 0.375rem;
+    font-size: 0.75rem;
+    border-radius: 0.25rem;
+    color: var(--primary-button-color);
+    background-color: var(--primary-button-default);
+    opacity: 0.85;
+    pointer-events: none;
   }
   .calendar-element {
     position: absolute;

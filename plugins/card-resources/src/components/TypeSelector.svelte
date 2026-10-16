@@ -21,6 +21,7 @@
   import card from '../plugin'
   import view from '@hcengineering/view'
   import { getFirstCreatableSubtype, getRootType, isBaseTypeWithSubtypes } from '../utils'
+  import { isArchivedType } from '../servone-archived'
 
   export let value: Ref<MasterTag> | null
   export let width: string | undefined = undefined
@@ -43,6 +44,8 @@
     if (_class.label === undefined) return false
     if (_class.kind !== ClassifierKind.CLASS) return false
     if ((_class as MasterTag).removed === true) return false
+    // servone: archived in Card Studio, so no longer offered for new cards.
+    if (isArchivedType(_class)) return false
     if (!isAllowedBySpace(_class._id as Ref<MasterTag>, roots)) return false
     if (skipBaseTypes && isBaseTypeWithSubtypes(hierarchy, _class._id as Ref<MasterTag>)) return false
     return true
@@ -105,7 +108,8 @@
     }
   }
 
-  $: if (value != null && !isAllowedBySpace(value, allowedRootTypes)) {
+  // servone: a preselected archived type (e.g. create from its own page) is cleared like one outside the space.
+  $: if (value != null && (!isAllowedBySpace(value, allowedRootTypes) || isArchivedType(hierarchy.getClass(value)))) {
     value = null
     dispatch('change', value)
   }

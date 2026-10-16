@@ -3103,7 +3103,6 @@
    * sidebar.
    */
   const GANTT_MENU_EXCLUDED_ACTIONS = [
-    'tracker:action:SetComponent',
     'tracker:action:SetMilestone',
     'tracker:action:SetLabels',
     'tracker:action:CopyIssueTitle',

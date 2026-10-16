@@ -50,9 +50,9 @@
 </script>
 
 <button class="hulyTableAttr-content__row w-full" class:hovered class:selected on:contextmenu on:click>
-  <button class="hulyTableAttr-content__row-dragMenu">
+  <span class="hulyTableAttr-content__row-dragMenu" role="button" tabindex="0">
     <IconMoreV2 size={'small'} />
-  </button>
+  </span>
   {#if attribute.automationOnly === true}
     <div class="hulyTableAttr-content__row-icon" use:tooltip={{ label: view.string.AutomationOnly }}>
       <Icon icon={view.icon.Setting} size={'small'} />

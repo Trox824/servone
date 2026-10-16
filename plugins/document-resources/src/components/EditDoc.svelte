@@ -39,6 +39,7 @@
     ButtonItem,
     Component,
     FocusHandler,
+    IconHistory,
     IconMoreH,
     Label,
     TimeSince,
@@ -212,6 +213,12 @@
       id: 'references',
       icon: document.icon.References,
       showTooltip: { label: document.string.Backlinks, direction: 'bottom' }
+    },
+    // servone: the aside already renders History, but upstream lists no button to open it.
+    {
+      id: 'history',
+      icon: IconHistory,
+      showTooltip: { label: document.string.History, direction: 'bottom' }
     }
   ]
   let selectedAside: string | boolean = false

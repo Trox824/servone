@@ -22,7 +22,6 @@
   import { Component, Label } from '@hcengineering/ui'
   import { getFiltredKeys, isCollectionAttr } from '@hcengineering/view-resources'
   import tracker from '../../plugin'
-  import ComponentEditor from '../components/ComponentEditor.svelte'
   import AssigneeEditor from '../issues/AssigneeEditor.svelte'
   import PriorityEditor from '../issues/PriorityEditor.svelte'
   import MilestoneEditor from '../milestones/MilestoneEditor.svelte'
@@ -123,11 +122,6 @@
   />
 
   <div class="divider" />
-
-  <span class="labelOnPanel">
-    <Label label={tracker.string.Component} />
-  </span>
-  <ComponentEditor value={issue} size={'medium'} />
 
   {#if issue.milestone}
     <span class="labelOnPanel">

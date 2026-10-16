@@ -748,6 +748,10 @@ export async function subscribePush (): Promise<boolean> {
   }
   const client = getClient()
   const publicKey = getPushPublicKey()
+  if ('Notification' in window && Notification.permission === 'denied') {
+    pushAllowed.set(false)
+    return false
+  }
   if ('serviceWorker' in navigator && 'PushManager' in window && hasValidPushPublicKeyFormat(publicKey)) {
     if (!(await isValidPushPublicKey(publicKey))) {
       pushAllowed.set(false)
@@ -798,7 +802,11 @@ export async function subscribePush (): Promise<boolean> {
       pushAllowed.set(true)
       return true
     } catch (err) {
-      console.error('Service Worker registration failed:', err)
+      if (err instanceof DOMException && err.name === 'NotAllowedError') {
+        console.warn('Service Worker registration failed:', err)
+      } else {
+        console.error('Service Worker registration failed:', err)
+      }
       pushAllowed.set(false)
       return false
     }

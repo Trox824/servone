@@ -32,10 +32,16 @@ import notification, {
   type InboxNotification,
   type InboxNotificationsClient
 } from '@hcengineering/notification'
+import { getMetadata, type Metadata } from '@hcengineering/platform'
 import { createQuery, getClient, onClient } from '@hcengineering/presentation'
 import { derived, get, writable } from 'svelte/store'
 
 import { isActivityNotification } from './utils'
+
+// servone: hides rows by per-channel notification level; set by packages/servone-ui/src/plugins/notification-resources/install.ts.
+const inboxNotificationFilter = 'servone:metadata:InboxNotificationFilter' as Metadata<
+(inboxNotification: InboxNotification, context: DocNotifyContext | undefined) => boolean
+>
 
 /**
  * @public
@@ -55,10 +61,13 @@ export class InboxNotificationsClientImpl implements InboxNotificationsClient {
   readonly otherInboxNotifications = writable<InboxNotification[]>([])
 
   readonly inboxNotifications = derived(
-    [this.activityInboxNotifications, this.otherInboxNotifications],
-    ([activityNotifications, otherNotifications]) => {
+    [this.activityInboxNotifications, this.otherInboxNotifications, this.contextById],
+    ([activityNotifications, otherNotifications, contextById]) => {
+      // servone: see inboxNotificationFilter; contextById is a new dependency so a level change re-filters.
+      const keep = getMetadata(inboxNotificationFilter) ?? (() => true)
       return otherNotifications
         .concat(activityNotifications)
+        .filter((it) => keep(it, contextById.get(it.docNotifyContext)))
         .sort((n1, n2) => (n2.createdOn ?? n2.modifiedOn) - (n1.createdOn ?? n1.modifiedOn))
     },
     [] as InboxNotification[]

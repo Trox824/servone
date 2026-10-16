@@ -1,0 +1,21 @@
+{
+  "string": {
+    "Cancel": "Hủy",
+    "Templates": "Mẫu văn bản",
+    "TemplatesHeader": "MẪU VĂN BẢN",
+    "CreateTemplate": "Tạo mẫu",
+    "SaveTemplate": "Lưu mẫu",
+    "EditTemplate": "Sửa mẫu",
+    "ViewTemplate": "Xem mẫu",
+    "Suggested": "GỢI Ý",
+    "SearchTemplate": "tìm mẫu",
+    "TemplatePlaceholder": "Mẫu mới",
+    "Title": "Tiêu đề",
+    "Message": "Tin nhắn",
+    "Field": "Trường",
+    "TemplateCategory": "Nhóm mẫu",
+    "CreateTemplateCategory": "Tạo nhóm",
+    "Copy": "Sao chép",
+    "Template": "Mẫu"
+  }
+}

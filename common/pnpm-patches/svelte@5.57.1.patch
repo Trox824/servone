@@ -1,0 +1,75 @@
+diff --git a/src/internal/client/dom/legacy/lifecycle.js b/src/internal/client/dom/legacy/lifecycle.js
+index a564712f046c1d2216a61b10cacee17e888845fa..02e8c5dc88af9e9905543810b84393bc81c7a964 100644
+--- a/src/internal/client/dom/legacy/lifecycle.js
++++ b/src/internal/client/dom/legacy/lifecycle.js
+@@ -4,6 +4,7 @@ import { component_context } from '../../context.js';
+ import { derived } from '../../reactivity/deriveds.js';
+ import { user_pre_effect, user_effect } from '../../reactivity/effects.js';
+ import { deep_read_state, get, untrack } from '../../runtime.js';
++import { get_flush_session } from '../../reactivity/batch.js';
+ 
+ /**
+  * Legacy-mode only: Call `onMount` callbacks and set up `beforeUpdate`/`afterUpdate` effects
+@@ -40,8 +41,13 @@ export function init(immutable = false) {
+ 
+ 	// beforeUpdate
+ 	if (callbacks.b.length) {
++		let last_session = -1;
+ 		user_pre_effect(() => {
+ 			observe_all(context, props);
++			// servone: at most once per synchronous flush (Svelte 4 `seen_callbacks` semantics)
++			const session = get_flush_session();
++			if (session === last_session) return;
++			last_session = session;
+ 			run_all(callbacks.b);
+ 		});
+ 	}
+@@ -60,8 +66,13 @@ export function init(immutable = false) {
+ 
+ 	// afterUpdate
+ 	if (callbacks.a.length) {
++		let last_session = -1;
+ 		user_effect(() => {
+ 			observe_all(context, props);
++			// servone: at most once per synchronous flush (Svelte 4 `seen_callbacks` semantics)
++			const session = get_flush_session();
++			if (session === last_session) return;
++			last_session = session;
+ 			run_all(callbacks.a);
+ 		});
+ 	}
+diff --git a/src/internal/client/reactivity/batch.js b/src/internal/client/reactivity/batch.js
+index 75ce33b1c56dcf090c289517209baf095724ad89..20253befcc7925e88c15678691ced8ed86e9a845 100644
+--- a/src/internal/client/reactivity/batch.js
++++ b/src/internal/client/reactivity/batch.js
+@@ -70,6 +70,22 @@ let last_scheduled_effect = null;
+ export let is_flushing_sync = false;
+ let is_processing = false;
+ 
++/**
++ * servone: monotonically increasing id of the outermost synchronous flush.
++ * Nested batches created while a flush is processing (writes performed inside
++ * effects) belong to the same session. Legacy `beforeUpdate`/`afterUpdate`
++ * callbacks use it to run at most once per session, which is what Svelte 4's
++ * `seen_callbacks` dedupe guaranteed — without it, an `afterUpdate` that assigns
++ * an object/array/Date to component state re-triggers itself until
++ * `effect_update_depth_exceeded`.
++ */
++let flush_session = 0;
++
++/** @returns {number} */
++export function get_flush_session() {
++	return flush_session;
++}
++
+ /**
+  * During traversal, this is an array. Newly created effects are (if not immediately
+  * executed) pushed to this array, rather than going through the scheduling
+@@ -671,6 +687,7 @@ export class Batch {
+ 				source_stacks.clear();
+ 			}
+ 
++			if (!is_processing) flush_session++;
+ 			is_processing = true;
+ 			current_batch = this;
+ 

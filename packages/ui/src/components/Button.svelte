@@ -85,6 +85,9 @@
   $: adaptive = adaptiveShrink !== null ? checkAdaptiveMatching(devSize, adaptiveShrink) : false
 
   onMount(() => {
+    // Svelte 5 skips later `on:` listeners once `event.cancelBubble` is set; a native listener
+    // keeps both the consumer's handler and stopPropagation running.
+    input?.addEventListener('click', preventHandler)
     if (focus && input) {
       input.focus()
       focus = false
@@ -152,13 +155,12 @@
   style:padding
   {title}
   type={kind === 'primary' ? 'submit' : 'button'}
-  on:click={preventHandler}
+  on:click
   on:click={() => {
     if (event) {
       Analytics.handleEvent(event)
     }
   }}
-  on:click
   on:focus
   on:blur
   on:mousemove

@@ -48,6 +48,7 @@ import serverToken, {
   decodeTokenVerbose,
   generateToken,
   type PermissionsGrant,
+  type Token,
   TokenError
 } from '@hcengineering/server-token'
 import { MongoAccountDB } from './collections/mongo'
@@ -178,6 +179,48 @@ export function isGuest (account: AccountUuid, extra: Record<string, any> | unde
   return account === GUEST_ACCOUNT && extra?.guest === 'true'
 }
 
+async function isRevokedByPasswordChange (db: AccountDB, token: Token): Promise<boolean> {
+  if (token.extra?.issuedOn === undefined || token.extra?.service !== undefined) return false
+  return await db.accountEvent.exists({
+    accountUuid: token.account,
+    eventType: AccountEventType.PASSWORD_CHANGED,
+    time: { $gt: Number(token.extra.issuedOn) }
+  })
+}
+
+export function stampIssuedOn (token: string): string {
+  const { account, workspace, extra, grant, sub, exp, nbf } = decodeToken(token)
+  if (
+    extra?.issuedOn !== undefined ||
+    extra?.service !== undefined ||
+    extra?.apiTokenId !== undefined ||
+    grant !== undefined
+  ) {
+    return token
+  }
+  return generateToken(account, workspace, { ...extra, issuedOn: String(Date.now()) }, undefined, { sub, exp, nbf })
+}
+
+// servone: Account.locale drives account emails and starter content
+export const SUPPORTED_LOCALES = ['en', 'vi']
+
+export function withLanguage (branding: Branding | null, locale: string | null | undefined): Branding | null {
+  if (locale == null || !SUPPORTED_LOCALES.includes(locale)) return branding
+  return { ...branding, language: locale }
+}
+
+// servone: an invite is written in the recipient's language when they already have an account, else the inviter's
+export async function withRecipientLanguage (
+  db: AccountDB,
+  branding: Branding | null,
+  email: string
+): Promise<Branding | null> {
+  const emailSocialId = await getEmailSocialId(db, cleanEmail(email))
+  if (emailSocialId == null) return branding
+  const recipient = await db.account.findOne({ uuid: emailSocialId.personUuid as AccountUuid })
+  return withLanguage(branding, recipient?.locale)
+}
+
 /**
  * Exact messages a `TokenError` can carry today (jwt-simple plus the checks in
  * `@hcengineering/server-token`). Anything else is logged as `other`: decoder
@@ -279,11 +322,16 @@ export function wrap (
         if (apiToken == null || apiToken.revoked || apiToken.expiresOn <= Date.now()) {
           return { error: new Status(Severity.ERROR, platform.status.Unauthorized, {}) }
         }
+      } else if (decoded !== undefined && (await isRevokedByPasswordChange(db, decoded))) {
+        return { error: new Status(Severity.ERROR, platform.status.Unauthorized, {}) }
       }
     }
 
-    return await accountMethod(ctx, db, branding, token, { ...request.params }, meta)
-      .then((result) => ({ id: request.id, result }))
+    return await accountMethod(ctx, db, withLanguage(branding, meta?.locale), token, { ...request.params }, meta) // servone:
+      .then((result) => ({
+        id: request.id,
+        result: typeof result?.token === 'string' ? { ...result, token: stampIssuedOn(result.token) } : result
+      }))
       .catch((err: Error) => {
         const status =
           err instanceof PlatformError
@@ -1161,7 +1209,7 @@ export async function updateWorkspaceRole (
 
   if (currentRole === AccountRole.Owner) {
     // Check if there are other owners
-    const owners = (await db.getWorkspaceMembers(workspace)).filter((m) => m.role === AccountRole.Owner)
+    const owners = (await db.getWorkspaceMembers(workspace)).filter((m) => m.role === AccountRole.Owner && !m.disabled)
     if (owners.length === 1) {
       throw new PlatformError(new Status(Severity.ERROR, platform.status.Forbidden, {}))
     }
@@ -1299,6 +1347,23 @@ export async function createWorkspaceRecord (
   }
 }
 
+export function matchesEmailMask (mask: string, email: string): boolean {
+  const [head, ...rest] = mask.toLowerCase().split('*')
+  const target = email.toLowerCase()
+  if (!target.startsWith(head)) return false
+  if (rest.length === 0) return target === head
+  let position = head.length
+  for (const [index, part] of rest.entries()) {
+    if (index === rest.length - 1) {
+      return target.length - part.length >= position && target.endsWith(part)
+    }
+    const found = target.indexOf(part, position)
+    if (found === -1) return false
+    position = found + part.length
+  }
+  return true
+}
+
 export async function checkInvite (ctx: MeasureContext, invite: WorkspaceInvite, email: string): Promise<WorkspaceUuid> {
   if (invite.remainingUses === 0) {
     ctx.warn('Invite limit exceeded', { email, ...invite })
@@ -1310,17 +1375,11 @@ export async function checkInvite (ctx: MeasureContext, invite: WorkspaceInvite,
     throw new PlatformError(new Status(Severity.ERROR, platform.status.ExpiredLink, {}))
   }
 
-  // TODO: consider not using RegExp with user input as some regexes might
-  // be slow or even cause catastrophic backtracking
-  // if (
-  //   invite.emailPattern != null &&
-  //   invite.emailPattern.trim().length > 0 &&
-  //   !new RegExp(invite.emailPattern).test(email)
-  // ) {
-  //   ctx.error("Invite doesn't allow this email address", { email, ...invite })
-  //   Analytics.handleError(new Error(`Invite link email mask check failed ${invite.id} ${email} ${invite.emailPattern}`))
-  //   throw new PlatformError(new Status(Severity.ERROR, platform.status.Forbidden, {}))
-  // }
+  const emailMask = invite.emailPattern?.trim() ?? ''
+  if (emailMask !== '' && !matchesEmailMask(emailMask, email)) {
+    ctx.warn("Invite doesn't allow this email address", { email, ...invite })
+    throw new PlatformError(new Status(Severity.ERROR, platform.status.Forbidden, {}))
+  }
 
   if (invite.email != null && invite.email.trim().length > 0 && invite.email !== email) {
     ctx.warn("Invite doesn't allow this email address", { email, ...invite })
@@ -1714,7 +1773,7 @@ export async function loginOrSignUpWithProvider (
       account: personUuid as AccountUuid,
       socialId: socialIdId,
       name: getPersonName(person),
-      token: generateToken(personUuid, undefined, extraToken)
+      token: generateToken(personUuid, undefined, { ...extraToken, issuedOn: String(Date.now()) })
     }
   } catch (err: any) {
     Analytics.handleError(err)
@@ -1766,7 +1825,7 @@ export async function joinWithProvider (
     ctx,
     db,
     branding,
-    generateToken(loginInfo.account, workspaceUuid),
+    generateToken(loginInfo.account, workspaceUuid, { issuedOn: String(Date.now()) }),
     loginInfo.account,
     workspace,
     invite
@@ -1881,7 +1940,7 @@ export async function sendEmail (info: EmailInfo, ctx: MeasureContext): Promise<
     })
   })
   if (!response.ok) {
-    ctx.error(`Failed to send mail: ${response.statusText}`, { to })
+    throw new Error(`Failed to send mail: ${response.status} ${response.statusText}`)
   }
 }
 
@@ -2104,7 +2163,8 @@ export const integrationServices = [
   'google-calendar',
   'huly-mail',
   'ai-assistant',
-  'tool'
+  'tool',
+  'servone-starter' // servone:
 ]
 
 export async function findExistingIntegration (

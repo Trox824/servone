@@ -28,12 +28,14 @@
     getCurrentAccount,
     makeCollabId,
     makeDocCollabId,
+    type Markup,
     type PersonId,
     Ref,
     SortingOrder,
-    toIdMap
+    toIdMap,
+    type TxOperations
   } from '@hcengineering/core'
-  import { getResource, translate } from '@hcengineering/platform'
+  import { getEmbeddedLabel, getResource, translate, type Asset, type IntlString, type Resource } from '@hcengineering/platform'
   import preference, { SpacePreference } from '@hcengineering/preference'
   import {
     Card,
@@ -77,17 +79,17 @@
     IconAttachment,
     Label,
     showPopup,
-    themeStore
+    themeStore,
+    type AnyComponent
   } from '@hcengineering/ui'
   import view from '@hcengineering/view'
   import { ObjectBox } from '@hcengineering/view-resources'
-  import { createEventDispatcher, onDestroy } from 'svelte'
+  import { createEventDispatcher, onDestroy, tick } from 'svelte'
 
   import { activeComponent, activeMilestone, generateIssueShortLink, updateIssueRelation } from '../issues'
   import tracker from '../plugin'
   import SetParentIssueActionPopup from './SetParentIssueActionPopup.svelte'
   import SubIssues from './SubIssues.svelte'
-  import ComponentSelector from './components/ComponentSelector.svelte'
   import AssigneeEditor from './issues/AssigneeEditor.svelte'
   import IssueNotification from './issues/IssueNotification.svelte'
   import ParentIssue from './issues/ParentIssue.svelte'
@@ -107,6 +109,10 @@
   export let shouldSaveDraft: boolean = true
   export let parentIssue: Issue | undefined
   export let originalIssue: Issue | undefined
+  // servone: prefilled by Mail "Create task", chat "Create issue" and /issue new; ignored when a saved draft is restored.
+  export let initialTitle: string = ''
+  export let initialDescription: Markup = EmptyMarkup
+  export let servoneSource: { author: string, text: string } | undefined = undefined
 
   const mDraftController = new MultipleDraftController(tracker.ids.IssueDraft)
   // Stored across the function/dispatch boundary so the success-path close
@@ -185,8 +191,8 @@
   function getDefaultObject (id: Ref<Issue> | undefined = undefined, ignoreOriginal = false): IssueDraft {
     const base: IssueDraft = {
       _id: id ?? generateId(),
-      title: '',
-      description: EmptyMarkup,
+      title: initialTitle,
+      description: initialDescription,
       kind: '' as Ref<TaskType>,
       priority: priority ?? IssuePriority.NoPriority,
       space: _space as Ref<Project>,
@@ -232,7 +238,41 @@
   }
   fillDefaults(hierarchy, object, tracker.class.Issue)
 
-  let currentProject: Project | undefined
+  // servone: set in the project's Create form tab (packages/servone-ui .../settings/ProjectCreateForm.svelte).
+  let currentProject: (Project & { servoneDefaultTemplate?: Ref<IssueTemplate> | null }) | undefined
+
+  // servone: the project's default template is applied and locked; switching away drops only a locked one.
+  let servoneLockedTemplate: Ref<IssueTemplate> | undefined
+  // servone: the form as the locked template left it, so closing it untouched neither prompts nor keeps a draft.
+  let servoneLockedDefaults: Partial<IssueDraft> = {}
+  $: servoneLockTemplate(currentProject?.servoneDefaultTemplate ?? undefined)
+  function servoneLockTemplate (next: Ref<IssueTemplate> | undefined): void {
+    if (next !== undefined) templateId = next
+    else if (servoneLockedTemplate !== undefined && templateId === servoneLockedTemplate) {
+      templateId = undefined
+      object.template = undefined
+      servoneLockedDefaults = {}
+    }
+    servoneLockedTemplate = next
+  }
+
+  // servone: a Quy trình workflow project creates business items; packages/servone-ui .../workflows/nav.ts.
+  const servoneIsWorkflowType = 'servone-tracker:function:IsWorkflowType' as Resource<(type: string) => boolean>
+  const servoneItemString = (key: 'NewItem' | 'CreateItem' | 'ItemCreated' | 'ItemTitle' | 'Workflow'): IntlString =>
+    `servone-tracker:string:${key}` as IntlString
+  const servoneWorkflowIcon = 'servone-workflow:icon:workflow' as Asset
+  async function servoneIsWorkflowProject (project: Project | undefined): Promise<boolean> {
+    return project !== undefined && (await getResource(servoneIsWorkflowType))(project.type)
+  }
+  let servoneIsWorkflow = false
+  $: void servoneIsWorkflowProject(currentProject).then((isWorkflow) => {
+    servoneIsWorkflow = isWorkflow
+  })
+  $: servoneWorkflowsOnly = servoneIsWorkflow && relatedTo === undefined
+  async function servoneFindDefaultSpace (): Promise<Project | undefined> {
+    const project = await findDefaultSpace()
+    return relatedTo !== undefined && (await servoneIsWorkflowProject(project)) ? undefined : project
+  }
 
   let descriptionBox: AttachmentStyledBox | undefined
 
@@ -243,7 +283,9 @@
     getTitle(object.title ?? '').length > 0 &&
     object.status !== undefined &&
     kind !== undefined &&
-    currentProject !== undefined
+    currentProject !== undefined &&
+    // servone: a template form with unanswered required questions blocks Create.
+    servoneForm?.isComplete !== false
 
   $: empty = {
     assignee: assignee ?? currentProject?.defaultAssignee,
@@ -253,7 +295,8 @@
     component: component ?? $activeComponent ?? null,
     milestone: milestone ?? $activeMilestone ?? null,
     priority: priority ?? IssuePriority.NoPriority,
-    space: _space
+    space: _space,
+    ...servoneLockedDefaults
   }
 
   $: objectChange(object, empty)
@@ -310,6 +353,8 @@
       }
     }
     const tagElements = toIdMap(await client.findAll(tags.class.TagElement, { _id: { $in: Array.from(allLabels) } }))
+    // servone: a workflow template's title is its name ("Hiring"), not a title for the new item.
+    const servoneKeepTitle = await servoneIsWorkflowProject(currentProject)
 
     object.subIssues = template.children.map((p) => {
       return {
@@ -335,8 +380,9 @@
 
     object = {
       ...object,
-      description: description ?? EmptyMarkup,
+      description: description == null || isEmptyMarkup(description) ? object.description : description,
       ...templBase,
+      title: servoneKeepTitle ? object.title : templBase.title,
       template: {
         template: template._id
       }
@@ -356,6 +402,11 @@
       kind = object.kind
     }
     fillDefaults(hierarchy, object, tracker.class.Issue)
+    if (template._id === servoneLockedTemplate) {
+      // Status and assignee defaults land in the next reactive flush.
+      await tick()
+      servoneLockedDefaults = structuredClone(object)
+    }
   }
 
   $: if (template !== undefined) {
@@ -414,11 +465,16 @@
 
   let subIssuesComponent: SubIssues
 
+  // servone: Escape asks before discarding, like the X button; an overlay click keeps upstream's save-and-close.
+  let isClosingFromOutside = false
   export function canClose (): boolean {
-    return true
+    if (isClosingFromOutside) return true
+    void showConfirmationDialog()
+    return false
   }
 
   export function onOutsideClick (): void {
+    isClosingFromOutside = true
     if (shouldSaveDraft) {
       draftController.save(object, empty)
     }
@@ -451,6 +507,25 @@
   $: if (_space !== undefined) {
     void updateCurrentProjectPref(_space)
   }
+
+  // servone: Scrum story points; editor and writer are in packages/servone-ui/src/plugins/tracker-resources/sprints.
+  const servonePointsEditor = 'servone-tracker:component:CreateIssuePoints' as AnyComponent
+  const servoneSetIssuePoints = 'servone-tracker:function:SetIssuePoints' as Resource<
+  (ops: TxOperations, issue: Ref<Issue>, space: Ref<Project>, points: number) => Promise<void>
+  >
+  let servonePoints: number | null = null
+  // servone: questions of a form template; packages/servone-ui/src/plugins/tracker-resources/forms.
+  const servoneFormEditor = 'servone-tracker:component:CreateIssueForm' as AnyComponent
+  let servoneForm:
+  | {
+    isComplete: boolean
+    hasAnswers: boolean
+    titleLabel: string | undefined
+    missingHint: string | undefined
+    fill: (value: DocData<Issue>, description: Markup) => Markup
+    save: (ops: TxOperations, issue: Ref<Issue>, space: Ref<Project>) => Promise<void>
+  }
+  | undefined
 
   async function createIssue (): Promise<void> {
     const _id: Ref<Issue> = generateId()
@@ -519,9 +594,11 @@
         identifier
       }
 
-      if (!isEmptyMarkup(object.description)) {
+      // servone: form answers may set priority and due date on `value` and extend the description.
+      const description = servoneForm?.fill(value, object.description) ?? object.description
+      if (!isEmptyMarkup(description)) {
         const collabId = makeCollabId(tracker.class.Issue, _id, 'description')
-        value.description = await createMarkup(collabId, object.description)
+        value.description = await createMarkup(collabId, description)
       }
 
       await docCreateManager.commit(operations, _id, currentProject, value, 'pre')
@@ -536,6 +613,13 @@
         _id
       )
       await docCreateManager.commit(operations, _id, currentProject, value, 'post')
+      if (servonePoints !== null) {
+        const setIssuePoints = await getResource(servoneSetIssuePoints)
+        await setIssuePoints(operations, _id, _space, servonePoints)
+      }
+      if (servoneForm !== undefined) {
+        await servoneForm.save(operations, _id, _space)
+      }
       for (const label of object.labels) {
         await operations.addCollection(label._class, label.space, _id, tracker.class.Issue, 'labels', {
           title: label.title,
@@ -574,7 +658,11 @@
           : [{ parentId: _id, parentTitle: value.title, space: _space, identifier }]
       await subIssuesComponent.save(parents, _id)
       addNotification(
-        await translate(tracker.string.IssueCreated, {}, $themeStore.language),
+        await translate(
+          servoneIsWorkflow ? servoneItemString('ItemCreated') : tracker.string.IssueCreated,
+          {},
+          $themeStore.language
+        ),
         getTitle(object.title),
         IssueNotification,
         {
@@ -626,14 +714,6 @@
     )
   }
 
-  const handleComponentIdChanged = (componentId: Ref<ComponentType> | null | undefined): void => {
-    if (componentId === undefined) {
-      return
-    }
-
-    object.component = componentId
-  }
-
   const handleMilestoneIdChanged = (milestoneId: Ref<Milestone> | null | undefined): void => {
     if (milestoneId === undefined) {
       return
@@ -674,7 +754,8 @@
 
   async function showConfirmationDialog (): Promise<void> {
     draftController.save(object, empty)
-    const isFormEmpty = draft === undefined
+    // servone: form answers live outside the draft.
+    const isFormEmpty = draft === undefined && servoneForm?.hasAnswers !== true
 
     if (isFormEmpty) {
       dispatch('close')
@@ -781,14 +862,14 @@
 <FocusHandler {manager} />
 
 <Card
-  label={tracker.string.NewIssue}
+  label={servoneIsWorkflow ? servoneItemString('NewItem') : tracker.string.NewIssue}
   okAction={createIssue}
   {canSave}
-  okLabel={tracker.string.SaveIssue}
+  okLabel={servoneIsWorkflow ? servoneItemString('CreateItem') : tracker.string.SaveIssue}
   on:close={() => dispatch('close', createdIssueId)}
   onCancel={showConfirmationDialog}
   hideAttachments={attachments.size === 0}
-  hideSubheader={parentIssue == null}
+  hideSubheader={parentIssue == null && servoneSource === undefined}
   headerNoPadding
   noFade={true}
   on:changeContent
@@ -796,11 +877,18 @@
   <svelte:fragment slot="header">
     <SpaceSelector
       _class={tracker.class.Project}
-      query={{
-        archived: false,
-        members: getCurrentAccount().uuid
-      }}
-      label={tracker.string.Project}
+      query={servoneWorkflowsOnly
+        ? {
+            archived: false,
+            members: getCurrentAccount().uuid,
+            // servone: matches the base type and its per-project copies, as IsWorkflowType does.
+            type: { $like: 'servone:projectType:Workflow%' }
+          }
+        : {
+            archived: false,
+            members: getCurrentAccount().uuid
+          }}
+      label={servoneWorkflowsOnly ? servoneItemString('Workflow') : tracker.string.Project}
       bind:space={_space}
       on:object={(evt) => {
         currentProject = evt.detail ?? undefined
@@ -808,27 +896,36 @@
       kind={'regular'}
       size={'small'}
       component={ProjectPresenter}
-      defaultIcon={tracker.icon.Home}
+      defaultIcon={servoneWorkflowsOnly ? servoneWorkflowIcon : tracker.icon.Home}
       clearInvalidValue={true}
-      {findDefaultSpace}
+      findDefaultSpace={servoneFindDefaultSpace}
     />
-    <ObjectBox
-      _class={tracker.class.IssueTemplate}
-      value={templateId}
-      docQuery={{
-        space: _space
-      }}
-      on:change={handleTemplateChange}
-      kind={'regular'}
-      size={'small'}
-      label={tracker.string.NoIssueTemplate}
-      icon={tracker.icon.IssueTemplates}
-      searchField={'title'}
-      allowDeselect={true}
-      showNavigate={false}
-      docProps={{ disabled: true, noUnderline: true }}
-      focusIndex={20000}
-    />
+    {#if servoneIsWorkflow && servoneLockedTemplate !== undefined}
+      <!-- servone: a locked template can't be changed here, so it reads as text, not a dead chip. -->
+      <span class="servone-fixed-template flex-row-center">
+        <span class="servone-caption"><Label label={tracker.string.IssueTemplate} /></span>
+        <span class="overflow-label">{template?.title ?? ''}</span>
+      </span>
+    {:else}
+      <ObjectBox
+        _class={tracker.class.IssueTemplate}
+        value={templateId}
+        docQuery={{
+          space: _space
+        }}
+        on:change={handleTemplateChange}
+        kind={'regular'}
+        size={'small'}
+        label={tracker.string.NoIssueTemplate}
+        icon={tracker.icon.IssueTemplates}
+        searchField={'title'}
+        allowDeselect={true}
+        showNavigate={false}
+        docProps={{ disabled: true, noUnderline: true }}
+        readonly={servoneLockedTemplate !== undefined}
+        focusIndex={20000}
+      />
+    {/if}
     <DocCreateExtComponent manager={docCreateManager} kind={'header'} space={currentProject} props={extraProps} />
   </svelte:fragment>
   <svelte:fragment slot="title" let:label>
@@ -842,7 +939,7 @@
         baseClass={tracker.class.Issue}
         size={'small'}
       />
-      {#if relatedTo}
+      {#if relatedTo && !client.getHierarchy().isDerived(relatedTo._class, activity.class.ActivityMessage)}
         <div class="lower mr-2">
           <Label label={tracker.string.RelatedTo} />
         </div>
@@ -865,12 +962,22 @@
     {#if parentIssue}
       <ParentIssue issue={parentIssue} on:close={clearParentIssue} />
     {/if}
+    {#if servoneSource !== undefined}
+      <div class="servone-source">
+        <span class="servone-source-author">{servoneSource.author}</span>
+        <span class="overflow-label">{servoneSource.text}</span>
+      </div>
+    {/if}
   </svelte:fragment>
   <div id="issue-name" class="m-3 clear-mins">
     <EditBox
       focusIndex={1}
       bind:value={object.title}
-      placeholder={tracker.string.IssueTitlePlaceholder}
+      placeholder={servoneForm?.titleLabel !== undefined
+        ? getEmbeddedLabel(servoneForm.titleLabel)
+        : servoneIsWorkflow
+          ? servoneItemString('ItemTitle')
+          : tracker.string.IssueTitlePlaceholder}
       kind={'large-style'}
       autoFocus
       fullSize
@@ -909,6 +1016,14 @@
       />
     {/key}
   </div>
+  <Component
+    is={servoneFormEditor}
+    showLoading={false}
+    props={{ template }}
+    on:change={(ev) => {
+      servoneForm = ev.detail ?? undefined
+    }}
+  />
   {#if _space}
     <SubIssues
       bind:this={subIssuesComponent}
@@ -921,8 +1036,12 @@
   {/if}
   <DocCreateExtComponent manager={docCreateManager} kind={'body'} space={currentProject} props={extraProps} />
   <svelte:fragment slot="pool">
-    <div id="status-editor">
+    <div id="status-editor" class:servone-captioned={servoneIsWorkflow}>
       {#if kind !== undefined}
+        <!-- servone: a status name alone ("New") reads like a title. -->
+        {#if servoneIsWorkflow}
+          <span class="servone-caption"><Label label={tracker.string.Status} /></span>
+        {/if}
         <StatusEditor
           focusIndex={3}
           value={{ ...object, kind }}
@@ -989,30 +1108,34 @@
         object.labels = object.labels.filter((it) => it.tag !== evt.detail._id)
       }}
     />
-    <ComponentSelector
-      focusIndex={7}
-      value={object.component}
-      space={_space}
-      onChange={handleComponentIdChanged}
-      isEditable={true}
-      kind={'regular'}
-      size={'large'}
+    {#if !servoneIsWorkflow}
+      <div id="estimation-editor" class="new-line">
+        <EstimationEditor focusIndex={8} kind={'regular'} size={'large'} value={object} />
+      </div>
+    {/if}
+    <Component
+      is={servonePointsEditor}
+      showLoading={false}
+      props={{ project: currentProject, points: servonePoints }}
+      on:change={(ev) => {
+        servonePoints = ev.detail
+      }}
     />
-    <div id="estimation-editor" class="new-line">
-      <EstimationEditor focusIndex={8} kind={'regular'} size={'large'} value={object} />
-    </div>
-    <div id="milestone-editor" class="new-line">
-      <MilestoneSelector
-        focusIndex={9}
-        value={object.milestone}
-        space={_space}
-        onChange={handleMilestoneIdChanged}
-        kind={'regular'}
-        size={'large'}
-        short
-      />
-    </div>
-    <div id="duedate-editor" class="new-line">
+    {#if !servoneIsWorkflow}
+      <div id="milestone-editor" class="new-line">
+        <MilestoneSelector
+          focusIndex={9}
+          value={object.milestone}
+          space={_space}
+          onChange={handleMilestoneIdChanged}
+          kind={'regular'}
+          size={'large'}
+          short
+        />
+      </div>
+    {/if}
+    <!-- servone: with the tracker-only second-row fields hidden, due date would sit alone on that row. -->
+    <div id="duedate-editor" class:new-line={!servoneIsWorkflow}>
       <DatePresenter
         focusIndex={10}
         bind:value={object.dueDate}
@@ -1022,17 +1145,19 @@
         editable
       />
     </div>
-    <div id="parentissue-editor" class="new-line">
-      <Button
-        focusIndex={11}
-        icon={tracker.icon.Parent}
-        label={object.parentIssue != null ? tracker.string.RemoveParent : tracker.string.SetParent}
-        kind={'regular'}
-        size={'large'}
-        notSelected={object.parentIssue === undefined}
-        on:click={object.parentIssue != null ? clearParentIssue : setParentIssue}
-      />
-    </div>
+    {#if !servoneIsWorkflow}
+      <div id="parentissue-editor" class="new-line">
+        <Button
+          focusIndex={11}
+          icon={tracker.icon.Parent}
+          label={object.parentIssue != null ? tracker.string.RemoveParent : tracker.string.SetParent}
+          kind={'regular'}
+          size={'large'}
+          notSelected={object.parentIssue === undefined}
+          on:click={object.parentIssue != null ? clearParentIssue : setParentIssue}
+        />
+      </div>
+    {/if}
     <DocCreateExtComponent manager={docCreateManager} kind={'pool'} space={currentProject} props={extraProps} />
   </svelte:fragment>
   <svelte:fragment slot="attachments">
@@ -1066,6 +1191,10 @@
     <DocCreateExtComponent manager={docCreateManager} kind={'buttons'} space={currentProject} props={extraProps} />
   </svelte:fragment>
   <svelte:fragment slot="after-buttons" let:handleOkClick let:okProcessing let:focusIndex let:canSave let:okLabel>
+    <!-- servone: says why Create is disabled while required form questions are empty. -->
+    {#if servoneForm?.missingHint !== undefined}
+      <span class="servone-caption">{servoneForm.missingHint}</span>
+    {/if}
     <DocCreateExtComponent
       manager={docCreateManager}
       kind={'createButton'}
@@ -1091,3 +1220,41 @@
     </DocCreateExtComponent>
   </svelte:fragment>
 </Card>
+
+<style lang="scss">
+  // servone: the description editor's hover "+" block menu drifts below the field here; "/" offers the same inserts.
+  #issue-description :global(.tiptap-left-menu) {
+    display: none;
+  }
+  .servone-captioned {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+  .servone-fixed-template {
+    gap: 0.375rem;
+    min-width: 0;
+    font-size: 0.8125rem;
+    color: var(--theme-caption-color);
+  }
+  .servone-caption {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    color: var(--theme-dark-color);
+  }
+  .servone-source {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+    padding-left: 0.625rem;
+    border-left: 2px solid var(--theme-divider-color);
+    font-size: 0.8125rem;
+    color: var(--theme-dark-color);
+  }
+  .servone-source-author {
+    flex-shrink: 0;
+    font-weight: 500;
+    color: var(--theme-caption-color);
+  }
+</style>

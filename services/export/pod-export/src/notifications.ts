@@ -60,7 +60,7 @@ export async function sendExportCompletionNotification (
     const targetWsToken = generateToken(systemAccountUuid, targetWorkspace, { service: 'export' })
     const targetAccountClient = getClient(envConfig.AccountsUrl, targetWsToken)
     const members = await targetAccountClient.getWorkspaceMembers()
-    const owners = members.filter((m: { role: string }) => m.role === AccountRole.Owner) as Array<{
+    const owners = members.filter((m: { role: string, disabled: boolean }) => m.role === AccountRole.Owner && !m.disabled) as Array<{
       person: AccountUuid
     }>
 

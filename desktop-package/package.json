@@ -2,7 +2,7 @@
   "name": "desktop",
   "version": "0.7.0",
   "main": "dist/main/electron.js",
-  "author": "Hardcore Engineering <hey@huly.io>",
+  "author": "Servone",
   "template": "@hcengineering/default-package",
   "scripts": {
     "_phase:package": "rushx package",
@@ -37,12 +37,12 @@
     "electron-squirrel-startup": "~1.0.0",
     "dotenv": "^16.4.5"
   },
-  "homepage": "https://huly.io/",
-  "productName": "Huly Desktop",
-  "description": "Huly Desktop experience",
+  "homepage": "https://servone.app/",
+  "productName": "Servone",
+  "description": "Servone desktop app",
   "build": {
-    "productName": "Huly",
-    "appId": "hc.hcengineering.Huly",
+    "productName": "Servone",
+    "appId": "site.henrynguyen.servone",
     "directories": {
       "output": "deploy"
     },
@@ -51,7 +51,7 @@
     ],
     "mac": {
       "category": "public.app-category.utilities",
-      "artifactName": "Huly-macos-${version}-${arch}.${ext}",
+      "artifactName": "Servone-macos-${version}-${arch}.${ext}",
       "target": "default",
       "icon": "./src/AppIcon.icns",
       "hardenedRuntime": true,
@@ -69,7 +69,7 @@
         "zip",
         "nsis"
       ],
-      "artifactName": "Huly-windows-${version}.${ext}",
+      "artifactName": "Servone-windows-${version}.${ext}",
       "verifyUpdateCodeSignature": false,
       "icon": "./src/AppIcon.ico",
       "publish": {
@@ -93,7 +93,7 @@
       "uninstallerIcon": "./src/AppIcon.ico"
     },
     "linux": {
-      "artifactName": "Huly-linux-${version}.${ext}",
+      "artifactName": "Servone-linux-${version}.${ext}",
       "target": [
         "AppImage",
         "deb",
@@ -115,9 +115,9 @@
   ],
   "bashScripts": {
     "package": "rm -rf ./dist && cp -r ../desktop/dist . && cp ../desktop/.env ./dist && echo 'done'",
-    "dist": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false NODE_ENV=production VERSION=$(node ../common/scripts/show_tag.js) MODEL_VERSION=$(node ../common/scripts/show_version.js) electron-builder build -p onTag",
-    "dist-local": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false NODE_ENV=production VERSION=$(node ../common/scripts/show_tag.js) MODEL_VERSION=$(node ../common/scripts/show_version.js) electron-builder build",
-    "dist-signed": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=true NODE_ENV=production VERSION=$(node ../common/scripts/show_tag.js) MODEL_VERSION=$(node ../common/scripts/show_version.js) electron-builder build -c.afterSign=scripts/notarize.js -p onTag",
-    "dist-mac-win": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false NODE_ENV=production VERSION=$(node ../common/scripts/show_tag.js) MODEL_VERSION=$(node ../common/scripts/show_version.js) electron-builder build --windows --x64"
+    "dist": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false NODE_ENV=production VERSION=$(node ../common/scripts/show_tag.js) MODEL_VERSION=$(node ../common/scripts/show_version.js) electron-builder build -c.appId=${DESKTOP_APP_ID:?set DESKTOP_APP_ID} -p onTag",
+    "dist-local": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false NODE_ENV=production VERSION=$(node ../common/scripts/show_tag.js) MODEL_VERSION=$(node ../common/scripts/show_version.js) electron-builder build -c.appId=${DESKTOP_APP_ID:?set DESKTOP_APP_ID}",
+    "dist-signed": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=true NODE_ENV=production VERSION=$(node ../common/scripts/show_tag.js) MODEL_VERSION=$(node ../common/scripts/show_version.js) electron-builder build -c.appId=${DESKTOP_APP_ID:?set DESKTOP_APP_ID} -c.afterSign=scripts/notarize.js -p onTag",
+    "dist-mac-win": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false NODE_ENV=production VERSION=$(node ../common/scripts/show_tag.js) MODEL_VERSION=$(node ../common/scripts/show_version.js) electron-builder build -c.appId=${DESKTOP_APP_ID:?set DESKTOP_APP_ID} --windows --x64"
   }
 }

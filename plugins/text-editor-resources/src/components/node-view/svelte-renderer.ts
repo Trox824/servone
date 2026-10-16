@@ -15,10 +15,10 @@
 //
 
 import { getResource } from '@hcengineering/platform'
-import { type AnyComponent } from '@hcengineering/ui'
+import { type AnyComponent, type AnySvelteComponent } from '@hcengineering/ui'
 import type { ComponentType, SvelteComponent } from 'svelte'
 
-export type SvelteRendererComponent = typeof SvelteComponent | ComponentType | AnyComponent
+export type SvelteRendererComponent = typeof SvelteComponent | ComponentType | AnyComponent | AnySvelteComponent
 
 export interface SvelteRendererOptions {
   element: HTMLElement
@@ -41,13 +41,14 @@ export class SvelteRenderer {
     this.component = null
     if (typeof component !== 'string') {
       const Component = component
-      this.component = new Component(options)
+      this.component = new (Component as any)(options)
     } else {
       void getResource(component)
         .then((resource) => {
           if (resource == null || this.destroyed) return
           const Component = resource
-          this.component = new Component({ ...options, props: this.props })
+          // Svelte 5 `Component` is a function type; runtime relies on compilerOptions.compatibility.componentApi = 4
+          this.component = new (Component as any)({ ...options, props: this.props })
         })
         .catch((error) => {
           console.error(`Failed to load Svelte component ${component}`, error)

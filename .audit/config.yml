@@ -1,0 +1,16 @@
+# ux-audit allowlist for the Servone dev stack: only services not started in dev; anything else is a real finding.
+console_allow:
+  - "/(huly\\.local|localhost):4017/"   # analytics collector not running (POST /collect)
+  - "/(huly\\.local|localhost):8099/"   # pulse websocket not running
+  - "/(huly\\.local|localhost):4040/"   # preview service not running
+  - "/(huly\\.local|localhost):8087/"   # files proxy target not running
+  - "/(huly\\.local|localhost):4004/"   # rekoni not running
+  - "/(huly\\.local|localhost):8096/"   # hulylake not running
+  - "/(huly\\.local|localhost):4900/"   # stats not running
+  - "/\\[HMR\\]/"                       # webpack-dev-server hot reload
+  - "/\\[webpack-dev-server\\]/"
+  - "/DEP0060/"                         # node deprecation echoed by dev-server
+  - "no document found, failed to apply model transaction, skipping"   # seeded-workspace model noise (backend), not UI
+network_allow:
+  - "/(huly\\.local|localhost):(4017|8099|4040|8087|4004|8096|4900)/"
+  - "/\\.hot-update\\.(json|js)/"

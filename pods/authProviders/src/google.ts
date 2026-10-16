@@ -4,6 +4,7 @@ import { BrandingMap, concatLink, MeasureContext, getBranding, SocialIdType } fr
 import Router from 'koa-router'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import { Passport } from '.'
+import { GOOGLE_SIGNUP_SCOPES, saveGrantAfterSignIn, verifyGoogleSignIn } from './servone-google-grant'
 import { encodeState, handleProviderAuth, safeParseAuthState } from './utils'
 
 export function registerGoogle (
@@ -31,9 +32,7 @@ export function registerGoogle (
         callbackURL: concatLink(accountsUrl, redirectURL),
         passReqToCallback: true
       },
-      function (req, accessToken, refreshToken, profile, done) {
-        done(null, profile)
-      }
+      verifyGoogleSignIn // servone:
     )
   )
 
@@ -41,7 +40,13 @@ export function registerGoogle (
     measureCtx.info('try auth via', { provider: 'google' })
     const state = encodeState(ctx, brandings)
 
-    passport.authenticate('google', { scope: ['profile', 'email'], session: true, state })(ctx, next)
+    passport.authenticate('google', {
+      scope: GOOGLE_SIGNUP_SCOPES, // servone:
+      accessType: 'offline', // servone:
+      includeGrantedScopes: true, // servone:
+      session: true,
+      state
+    })(ctx, next)
   })
 
   router.get(
@@ -63,8 +68,8 @@ export function registerGoogle (
       // passport-google-oauth20 maps Google's email_verified claim to this field.
       const email = ctx.state.user.emails?.[0]?.value
       const verifiedEmail = ctx.state.user.emails?.[0]?.verified === true ? email : undefined
-      const first = ctx.state.user.name.givenName
-      const last = ctx.state.user.name.familyName
+      const first: string = ctx.state.user.name?.givenName ?? ''
+      const last: string = ctx.state.user.name?.familyName ?? '' // servone:
       const db = await dbPromise
 
       const redirectUrl = await handleProviderAuth(
@@ -83,6 +88,7 @@ export function registerGoogle (
       )
 
       if (redirectUrl !== '') {
+        await saveGrantAfterSignIn(measureCtx, db, email, ctx.state.user.grant) // servone:
         ctx.redirect(redirectUrl)
       }
 

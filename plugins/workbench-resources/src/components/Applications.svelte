@@ -13,7 +13,6 @@
 // limitations under the License.
 -->
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte'
   import core, { AccountRole, getCurrentAccount, type ModulePermissionGroup, type Ref } from '@hcengineering/core'
   import { createNotificationsQuery, createQuery } from '@hcengineering/presentation'
   import { Scroller, deviceOptionsStore as deviceInfo } from '@hcengineering/ui'
@@ -33,17 +32,6 @@
   export let apps: Application[] = []
   export let direction: 'vertical' | 'horizontal' = 'vertical'
   export let customAppProps: Map<string, any> = new Map<string, any>()
-
-  const dispatch = createEventDispatcher()
-
-  function getClickHandler (app: Application, customProps: any): () => void {
-    return (
-      customProps.onClick ??
-      (() => {
-        if (app._id === active) dispatch('toggleNav')
-      })
-    )
-  }
 
   let loaded: boolean = false
   let permissionsLoaded: boolean = false
@@ -185,7 +173,7 @@
             notify={showNotify(app.alias, hasInboxNotifications, hasNewInboxNotifications, hasNewMessagesNotification)}
             {...customProps}
             dataId={`app-sidebar-${app.alias}`}
-            on:click={getClickHandler(app, customProps)}
+            on:click={customProps.onClick}
           />
         </NavLink>
       {/each}
@@ -202,7 +190,7 @@
             navigator={app._id === active && $deviceInfo.navigator.visible}
             {...customProps}
             dataId={`app-sidebar-${app.alias}`}
-            on:click={getClickHandler(app, customProps)}
+            on:click={customProps.onClick}
           />
         </NavLink>
       {/each}
@@ -219,7 +207,7 @@
               notify={app.alias === chatId && hasNewInboxNotifications}
               {...customProps}
               dataId={`app-sidebar-${app.alias}`}
-              on:click={getClickHandler(app, customProps)}
+              on:click={customProps.onClick}
             />
           </NavLink>
         {/each}

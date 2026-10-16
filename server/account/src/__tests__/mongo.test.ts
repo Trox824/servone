@@ -809,6 +809,14 @@ describe('MongoAccountDB', () => {
           role
         })
       })
+
+      it('should refuse to re-assign a deactivated member', async () => {
+        ;(accountDb.workspaceMembers.findOne as jest.Mock).mockResolvedValue({ role, disabled: true })
+
+        await expect(accountDb.assignWorkspace(accountId, workspaceId, role)).rejects.toThrow()
+
+        expect(accountDb.workspaceMembers.insertOne).not.toHaveBeenCalled()
+      })
     })
 
     describe('unassignWorkspace', () => {
@@ -857,8 +865,8 @@ describe('MongoAccountDB', () => {
     describe('getWorkspaceMembers', () => {
       it('should return mapped member info', async () => {
         const members = [
-          { accountUuid: 'acc1' as AccountUuid, role: AccountRole.Owner },
-          { accountUuid: 'acc2' as PersonUuid, role: AccountRole.Maintainer }
+          { accountUuid: 'acc1' as AccountUuid, role: AccountRole.Owner, disabled: false },
+          { accountUuid: 'acc2' as PersonUuid, role: AccountRole.Maintainer, disabled: true }
         ]
 
         ;(accountDb.workspaceMembers.find as jest.Mock).mockResolvedValue(members)
@@ -866,8 +874,8 @@ describe('MongoAccountDB', () => {
         const result = await accountDb.getWorkspaceMembers(workspaceId)
 
         expect(result).toEqual([
-          { person: 'acc1', role: AccountRole.Owner },
-          { person: 'acc2', role: AccountRole.Maintainer }
+          { person: 'acc1', role: AccountRole.Owner, disabled: false },
+          { person: 'acc2', role: AccountRole.Maintainer, disabled: true }
         ])
       })
     })

@@ -72,6 +72,12 @@ function blobToSrcSet (blob: Ref<Blob>, width: number | undefined, height: numbe
     }
   }
 
+  // servone: /files authenticates by the storage cookie; datalake scopes it to /blob, so the front 401s and srcset beats the working src.
+  const workspaceUuid = getCurrentWorkspaceUuid()
+  if (!`/files/${workspaceUuid}`.startsWith(getFileStorage().getCookiePath(workspaceUuid))) {
+    return ''
+  }
+
   const frontUrl = getMetadata(presentation.metadata.FrontUrl) ?? window.location.origin
   const url = concatLink(frontUrl, frontImagePreviewUrl).replaceAll(':workspace', workspace).replaceAll(':blobId', name)
 

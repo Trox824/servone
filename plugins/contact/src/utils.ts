@@ -437,16 +437,15 @@ export async function ensureEmployeeForPerson (
   let personRef: Ref<Person> | undefined
   try {
     const txFactory = new TxFactory(me.primarySocialId)
-    const personByUuid = await client.findOne(contact.class.Person, { personUuid: person.uuid })
+    const [personByUuid, identities] = await Promise.all([
+      client.findOne(contact.class.Person, { personUuid: person.uuid }),
+      client.findAll(contact.class.SocialIdentity, { _id: { $in: person.socialIds as SocialIdentityRef[] } })
+    ])
     personRef = personByUuid?._id
 
     if (personRef === undefined) {
-      const socialIdentity = await client.findOne(contact.class.SocialIdentity, {
-        _id: { $in: person.socialIds as SocialIdentityRef[] }
-      })
-
       // This social id is confirmed globally as we only have ids of confirmed social identities in socialIds array
-      personRef = socialIdentity?.attachedTo
+      personRef = identities[0]?.attachedTo
     }
 
     if (personRef === undefined) {
@@ -482,9 +481,7 @@ export async function ensureEmployeeForPerson (
       await client.tx(updatePersonTx)
     }
 
-    const existingIdentifiers = toIdMap(
-      await client.findAll(contact.class.SocialIdentity, { _id: { $in: person.socialIds as SocialIdentityRef[] } })
-    )
+    const existingIdentifiers = toIdMap(identities)
 
     for (const socialId of socialIds) {
       const existing = existingIdentifiers.get(socialId._id as SocialIdentityRef)

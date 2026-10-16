@@ -3,10 +3,9 @@
   import { DevicesPreference } from '@hcengineering/love'
   import { getClient } from '@hcengineering/presentation'
   import { Component, Label, Loading, Toggle } from '@hcengineering/ui'
-  import { isKrispNoiseFilterSupported } from '@livekit/krisp-noise-filter'
   import love from '../../plugin'
   import { myPreferences } from '../../stores'
-  import { krispProcessor } from '../../utils'
+  import { loadKrisp, setNoiseCancellation } from '../../utils'
   import mediaPlugin, { getMediaDevices } from '@hcengineering/media'
 
   const client = getClient()
@@ -27,7 +26,7 @@
         blurRadius: 0
       })
     }
-    await krispProcessor.setEnabled(value)
+    await setNoiseCancellation(value)
   }
 </script>
 
@@ -39,17 +38,19 @@
   {:then mediaInfo}
     <Component is={mediaPlugin.component.MediaPopupMicSelector} props={{ mediaInfo }} />
     <Component is={mediaPlugin.component.MediaPopupSpkSelector} props={{ mediaInfo }} />
-    {#if isKrispNoiseFilterSupported()}
-      <div class="grid p-3">
-        <Label label={love.string.NoiseCancellation} />
-        <Toggle
-          on={$myPreferences?.noiseCancellation ?? true}
-          on:change={(e) => {
-            saveNoiseCancellationPreference($myPreferences, e.detail)
-          }}
-        />
-      </div>
-    {/if}
+    {#await loadKrisp() then krisp}
+      {#if krisp.isKrispNoiseFilterSupported()}
+        <div class="grid p-3">
+          <Label label={love.string.NoiseCancellation} />
+          <Toggle
+            on={$myPreferences?.noiseCancellation ?? true}
+            on:change={(e) => {
+              saveNoiseCancellationPreference($myPreferences, e.detail)
+            }}
+          />
+        </div>
+      {/if}
+    {/await}
   {/await}
 </div>
 

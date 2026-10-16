@@ -1,7 +1,7 @@
 {
   "huly.local:8080": {
-    "title": "Huly",
-    "languages": "en,ru,pl,pt,pt-br,es,zh,fr,de,ja,ko,tr",
+    "title": "Servone",
+    "languages": "vi,en",
     "defaultLanguage": "en",
     "defaultApplication": "tracker",
     "defaultSpace": "tracker:project:DefaultProject",
@@ -29,8 +29,8 @@
     ]
   },
   "huly.local:8087": {
-    "title": "Huly",
-    "languages": "en,ru,pl,pt,pt-br,es,zh,fr,de,ja,ko,tr",
+    "title": "Servone",
+    "languages": "vi,en",
     "defaultLanguage": "en",
     "defaultApplication": "tracker",
     "defaultSpace": "tracker:project:DefaultProject",
@@ -133,6 +133,35 @@
         "type": "image/png",
         "sizes": "192x192",
         "href": "/tracex/favicon_192.png"
+      }
+    ]
+  },
+  "platform.servone.app": {
+    "title": "Servone",
+    "languages": "vi,en",
+    "defaultLanguage": "en",
+    "defaultApplication": "tracker",
+    "defaultSpace": "tracker:project:DefaultProject",
+    "lastNameFirst": "true",
+    "defaultSpecial": "issues",
+    "links": [
+      {
+        "rel": "manifest",
+        "href": "/huly/site.webmanifest"
+      },
+      {
+        "rel": "icon",
+        "href": "/huly/favicon.svg",
+        "type": "image/svg+xml"
+      },
+      {
+        "rel": "shortcut icon",
+        "href": "/huly/favicon.ico",
+        "sizes": "any"
+      },
+      {
+        "rel": "apple-touch-icon",
+        "href": "/huly/apple-touch-icon.png"
       }
     ]
   }

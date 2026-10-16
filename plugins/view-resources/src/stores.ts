@@ -112,3 +112,6 @@ export const rawSearchTextStore = writable<string>('')
  * can short-circuit to a no-op when the user turned highlighting off.
  */
 export const searchHighlightEnabledStore = writable<boolean>(true)
+
+// servone: IssuesView mirrors `viewOptions.shouldShowAll`, so page-level empty cards stay off the empty groups.
+export const showEmptyGroupsStore = writable<boolean>(false)

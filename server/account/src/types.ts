@@ -360,6 +360,7 @@ export interface AccountDB {
   batchAssignWorkspace: (data: [AccountUuid, WorkspaceUuid, AccountRole][]) => Promise<void>
   updateWorkspaceRole: (accountId: AccountUuid, workspaceId: WorkspaceUuid, role: AccountRole) => Promise<void>
   unassignWorkspace: (accountId: AccountUuid, workspaceId: WorkspaceUuid) => Promise<void>
+  setWorkspaceMemberDisabled: (accountId: AccountUuid, workspaceId: WorkspaceUuid, disabled: boolean) => Promise<void>
   getWorkspaceRole: (accountId: AccountUuid, workspaceId: WorkspaceUuid) => Promise<AccountRole | null>
   getWorkspaceRoles: (accountId: AccountUuid) => Promise<Map<WorkspaceUuid, AccountRole>>
   getWorkspaceMembers: (workspaceId: WorkspaceUuid) => Promise<WorkspaceMemberInfo[]>
@@ -530,6 +531,7 @@ export type ClientNetworkPosition = 'internal' | 'external'
 
 export interface Meta {
   timezone?: string
+  locale?: string
   clientNetworkPosition?: ClientNetworkPosition
 }
 

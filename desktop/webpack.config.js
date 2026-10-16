@@ -11,6 +11,7 @@ const CompressionPlugin = require('compression-webpack-plugin')
 const DefinePlugin = require('webpack').DefinePlugin
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
+const { servonePlugins } = require('../dev/prod/servone.webpack.js')
 
 const mode = process.env.NODE_ENV || 'development'
 const prod = mode === 'production'
@@ -125,7 +126,7 @@ module.exports = [
   // ------ UI Part --------------------------
   {
     entry: {
-      bundle: ['@hcengineering/theme/styles/global.scss', ...['./src/ui/index.ts']],
+      bundle: ['@hcengineering/theme/styles/global.scss', '@servone/theme/styles/index.css', './src/ui/index.ts'],
       'recorder-worker': '@hcengineering/recorder-resources/src/recorder-worker.ts',
       findInPageOverlay: './src/ui/findInPageOverlay.ts'
     },
@@ -139,9 +140,11 @@ module.exports = [
     resolve: {
       symlinks: true,
       alias: {
-        svelte: path.resolve('node_modules', 'svelte/src/runtime'),
-        '@hcengineering/platform-rig/profiles/ui/svelte': path.resolve('node_modules', 'svelte/src/runtime')
+        '@hcengineering/ui$': path.resolve(__dirname, '../packages/servone-ui/src/index.ts'),
+        $lib: path.resolve(__dirname, '../packages/servone-ui/src/lib'),
+        '@hcengineering/platform-rig/profiles/ui/svelte': false
       },
+      extensionAlias: { '.js': ['.ts', '.js'] },
       fallback: {
         crypto: false,
         path: false,
@@ -149,7 +152,7 @@ module.exports = [
       },
       extensions: ['.mjs', '.js', '.svelte', '.ts'],
       mainFields: ['svelte', 'browser', 'module', 'main'],
-      conditionNames: ['svelte', 'browser', 'import']
+      conditionNames: ['svelte', 'browser', 'import', ...(prod ? ['production'] : ['development'])]
     },
     output: {
       path: path.join(__dirname, '/dist/ui/'),
@@ -182,20 +185,35 @@ module.exports = [
           exclude: /node_modules/
         },
         {
+          test: /[\\/]@xyflow[\\/]svelte[\\/].*\.svelte\.\d+\.css$/,
+          sideEffects: true
+        },
+        {
+          test: /\.svelte\.(js|ts)$/,
+          use: {
+            loader: 'svelte-loader',
+            options: { compilerOptions: { dev: !prod } }
+          }
+        },
+        {
           test: /\.svelte$/,
           use: {
             loader: 'svelte-loader',
             options: {
               compilerOptions: {
-                dev: !prod
+                dev: !prod,
+                compatibility: { componentApi: 4 }
               },
               emitCss: true,
-              hotReload: !prod,
+              hotReload: false,
               preprocess: require('svelte-preprocess')({
                 postcss: true,
                 sourceMap: true,
                 scss: {
                   implementation: sass
+                },
+                typescript: {
+                  compilerOptions: { verbatimModuleSyntax: true, target: 'ESNext' }
                 }
               }),
               hotOptions: {
@@ -242,7 +260,10 @@ module.exports = [
             // prod ? MiniCssExtractPlugin.loader :
             'style-loader',
             'css-loader',
-            'postcss-loader'
+            {
+              loader: 'postcss-loader',
+              options: { postcssOptions: { config: path.resolve(__dirname, 'postcss.config.js') } }
+            }
           ]
         },
 
@@ -320,6 +341,7 @@ module.exports = [
     },
     mode,
     plugins: [
+      ...servonePlugins(prod),
       new CopyPlugin({
         patterns: [{ from: 'public', to: 'public' }]
       }),

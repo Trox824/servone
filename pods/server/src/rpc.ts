@@ -315,6 +315,11 @@ export function registerRPC (app: Express, sessions: SessionManager, ctx: Measur
           })
           return
         }
+        // servone: api-client keeps a PlatformError status only from a 200 body; code kept in sync with @servone/approvals WAITING_APPROVAL.
+        if (err instanceof PlatformError && err.status.code === 'servone:status:WaitingApproval') {
+          await sendJson(req, res, { error: err.status }, rateLimitToHeaders(rateLimit))
+          return
+        }
         throw err
       }
     })

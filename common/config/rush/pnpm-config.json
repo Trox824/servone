@@ -199,6 +199,13 @@
    * PNPM documentation: https://pnpm.io/package_json#pnpmoverrides
    */
   "globalOverrides": {
+    // servone: Svelte 5 toolchain (runs upstream Svelte 4 code in legacy mode)
+    "svelte": "^5.33.0",
+    "svelte-preprocess": "^6.0.3",
+    "svelte-check": "^4.3.0",
+    "svelte-loader": "^3.2.4",
+    "svelte2tsx": "^0.7.45",
+    "esbuild-svelte": "^0.9.3",
     // DEV: Uncomment the lines below to use local huly.core, huly.server, and huly.utils packages
     // Then "rush update --full" to update the dependencies.
     // NOTE:  It's configured to work if huly.core, huly.server, and huly.utils are placed adjacent to the platform. If you have them in a different location, you need to change the paths below.
@@ -359,7 +366,7 @@
    *
    * PNPM documentation: https://pnpm.io/package_json#pnpmpatcheddependencies
    */
-  "globalPatchedDependencies": {},
+  "globalPatchedDependencies": {"svelte@5.57.1":"patches/svelte@5.57.1.patch"},
 
   /**
    * (USE AT YOUR OWN RISK)  This is a free-form property bag that will be copied into
