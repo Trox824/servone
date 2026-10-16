@@ -128,6 +128,10 @@
       nextOptions.props.right = '0'
       nextOptions.props.transform = ''
     }
+    if (element === 'middle' && !isFullSizeState) {
+      nextOptions.props.maxHeight = `calc(100vh - ${nextOptions.props.top} - ${nextOptions.props.bottom})`
+      nextOptions.props.bottom = ''
+    }
     options = nextOptions
   }
 
