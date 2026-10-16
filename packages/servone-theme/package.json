@@ -1,0 +1,26 @@
+{
+  "name": "@servone/theme",
+  "version": "0.7.0",
+  "description": "shadcn-svelte token bridge for Huly theme (CSS variables + Tailwind v4 pipeline)",
+  "author": "Servone",
+  "license": "EPL-2.0",
+  "files": [
+    "styles"
+  ],
+  "scripts": {
+    "build": "echo \"@servone/theme: no build step, styles are consumed as raw CSS\"",
+    "build:watch": "echo \"@servone/theme: no build step, styles are consumed as raw CSS\"",
+    "format": "echo \"@servone/theme: nothing to format\""
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.2.5",
+    "tailwindcss": "^4.1.13"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hcengineering/platform.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

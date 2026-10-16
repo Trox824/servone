@@ -1,0 +1,29 @@
+{
+  "key": "tai-san-cong-ty",
+  "version": 1,
+  "name": "Tài sản công ty",
+  "description": "Sổ tài sản của công ty: ai đang giữ, còn bảo hành đến khi nào, và nhật ký bảo trì, sửa chữa của từng tài sản.",
+  "industry": "Mọi ngành",
+  "operations": [
+    { "op": "createType", "key": "tai-san", "name": "Tài sản" },
+    { "op": "addField", "type": "tai-san", "key": "ma-tai-san", "name": "Mã tài sản", "kind": { "kind": "autoNumber", "prefix": "TS" } },
+    { "op": "addField", "type": "tai-san", "key": "loai-tai-san", "name": "Loại tài sản", "kind": { "kind": "select", "options": ["Máy tính", "Điện thoại", "Thiết bị văn phòng", "Nội thất", "Phương tiện đi lại", "Khác"] }, "required": true },
+    { "op": "addField", "type": "tai-san", "key": "so-serial", "name": "Số serial", "kind": { "kind": "text" } },
+    { "op": "addField", "type": "tai-san", "key": "ngay-mua", "name": "Ngày mua", "kind": { "kind": "date" } },
+    { "op": "addField", "type": "tai-san", "key": "nguyen-gia", "name": "Nguyên giá", "kind": { "kind": "money", "currency": "VND" } },
+    { "op": "addField", "type": "tai-san", "key": "bao-hanh-den", "name": "Bảo hành đến", "kind": { "kind": "date" } },
+    { "op": "addField", "type": "tai-san", "key": "nguoi-su-dung", "name": "Người đang sử dụng", "kind": { "kind": "person" } },
+    { "op": "addField", "type": "tai-san", "key": "vi-tri", "name": "Vị trí", "kind": { "kind": "text" } },
+    { "op": "addField", "type": "tai-san", "key": "tinh-trang", "name": "Tình trạng", "kind": { "kind": "select", "options": ["Đang sử dụng", "Trong kho", "Đang sửa chữa", "Đã thanh lý", "Báo mất"] } },
+    { "op": "createType", "key": "bao-tri", "name": "Nhật ký bảo trì" },
+    { "op": "addField", "type": "bao-tri", "key": "ma-bao-tri", "name": "Mã bảo trì", "kind": { "kind": "autoNumber", "prefix": "BT" } },
+    { "op": "addField", "type": "bao-tri", "key": "ngay-thuc-hien", "name": "Ngày thực hiện", "kind": { "kind": "date" }, "required": true },
+    { "op": "addField", "type": "bao-tri", "key": "loai-cong-viec", "name": "Loại công việc", "kind": { "kind": "select", "options": ["Bảo trì định kỳ", "Sửa chữa", "Thay linh kiện", "Kiểm tra"] }, "required": true },
+    { "op": "addField", "type": "bao-tri", "key": "noi-dung", "name": "Nội dung", "kind": { "kind": "longText" } },
+    { "op": "addField", "type": "bao-tri", "key": "don-vi-thuc-hien", "name": "Đơn vị thực hiện", "kind": { "kind": "text" } },
+    { "op": "addField", "type": "bao-tri", "key": "chi-phi", "name": "Chi phí", "kind": { "kind": "money", "currency": "VND" } },
+    { "op": "addField", "type": "bao-tri", "key": "nguoi-phu-trach", "name": "Người phụ trách", "kind": { "kind": "person" } },
+    { "op": "addField", "type": "bao-tri", "key": "ngay-bao-tri-tiep", "name": "Ngày bảo trì tiếp theo", "kind": { "kind": "date" } },
+    { "op": "addLink", "key": "tai-san-bao-tri", "from": "tai-san", "to": "bao-tri", "fromName": "Nhật ký bảo trì", "toName": "Tài sản", "fromMany": true, "toMany": false }
+  ]
+}

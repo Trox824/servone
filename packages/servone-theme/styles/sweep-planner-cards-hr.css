@@ -1,0 +1,6 @@
+/* Room boxes are narrow; fix scoped here rather than in the shared Input primitive. */
+#ui-root .floorGrid-configureRoom__header input {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -1,0 +1,4 @@
+# Root .gitignore ignores every `lib/` (Rush build output); src/lib here is the
+# shadcn-svelte source tree, not a build artifact.
+!src/lib/
+!src/mail/lib/

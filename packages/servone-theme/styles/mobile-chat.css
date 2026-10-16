@@ -1,0 +1,242 @@
+#ui-root.mobile-theme .servone-header [data-id='open-in-sidebar'],
+#ui-root.mobile-theme .servone-header [data-id='aside-toggle'] {
+  display: none;
+}
+#ui-root.mobile-theme .servone-channel .servone-header button {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+}
+
+#ui-root.mobile-theme .servone-channel > .popupPanel-body.asideShown {
+  position: relative;
+}
+#ui-root.mobile-theme .servone-channel > .popupPanel-body > .popupPanel-body__aside {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  background-color: var(--theme-panel-color);
+}
+
+#ui-root.mobile-theme .activityMessage-actionPopup button {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+}
+
+#ui-root.mobile-theme .hulyPopupEmoji-container:not(.embedded) {
+  width: calc(100vw - 1rem);
+  min-width: 0;
+  max-width: calc(100vw - 1rem);
+}
+
+#ui-root.mobile-theme .mail-app__grid {
+  grid-template-columns: 1fr !important;
+}
+#ui-root.mobile-theme .mail-app__grid > .mail-app__pane[aria-busy]:not(:nth-child(3)) {
+  display: none;
+}
+#ui-root.mobile-theme .account-banner:not(.account-banner--strip) {
+  flex-wrap: wrap;
+}
+#ui-root.mobile-theme .account-banner__text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+#ui-root.mobile-theme .thread-view__meta {
+  flex-wrap: wrap;
+}
+#ui-root.mobile-theme .composer--modal {
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+}
+#ui-root.mobile-theme .composer__close {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+#ui-root.mobile-theme .composer__footer {
+  flex-wrap: wrap;
+}
+
+#ui-root.mobile-theme .call.theme-dark > header {
+  padding-inline: 0.75rem;
+}
+#ui-root.mobile-theme .control-bar .bar {
+  padding: 0.5rem 0.5rem 0.75rem;
+}
+#ui-root.mobile-theme .control-bar .bar .row {
+  flex-wrap: wrap;
+  justify-content: center;
+  transform: none;
+}
+#ui-root.mobile-theme .room-container.sharing {
+  flex-direction: column;
+}
+#ui-root.mobile-theme .room-container.sharing .videoGrid {
+  flex-direction: row;
+  flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  height: 6rem;
+  overflow: auto hidden;
+}
+
+#ui-root.mobile-theme .buttons-panel button {
+  min-width: 36px;
+  min-height: 36px;
+}
+
+#ui-root.mobile-theme .servone-channel :is(img, video, canvas) {
+  max-width: 100%;
+  height: auto;
+}
+
+#ui-root.mobile-theme .activityMessage:not(.embedded) {
+  gap: 0.5rem;
+  padding-inline: 0.75rem;
+}
+#ui-root.mobile-theme .activityMessage > .avatar,
+#ui-root.mobile-theme .activityMessage > .avatar .hulyAvatarSize-medium,
+#ui-root.mobile-theme .activityMessage > .avatar > .avatar {
+  width: 2rem;
+  height: 2rem;
+}
+#ui-root.mobile-theme .activityMessage > .time {
+  width: 2rem;
+  min-width: 2rem;
+}
+#ui-root.mobile-theme .activityMessage > .message-content {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+}
+#ui-root.mobile-theme .activityMessage > .actions:not(.embedded) {
+  top: 0.25rem;
+  right: 0.5rem;
+}
+#ui-root.mobile-theme .activityMessage:focus-within > .actions:not(.pending) {
+  visibility: visible;
+}
+
+#ui-root.mobile-theme .servone-channel .selectedDate {
+  pointer-events: none;
+}
+#ui-root.mobile-theme .servone-channel .selectedDate button {
+  pointer-events: auto;
+}
+#ui-root.mobile-theme .servone-channel .selectedDate ~ .scroller-container .box {
+  padding-top: 2.5rem;
+}
+
+#ui-root.mobile-theme .hulyNavPanel-container div[data-selected] {
+  min-height: 2.75rem;
+}
+#ui-root.mobile-theme .hulyNavPanel-container div[data-selected] > button:not([aria-expanded]) {
+  justify-content: flex-start;
+  text-align: left;
+}
+#ui-root.mobile-theme .hulyNavPanel-container button[data-selected] {
+  min-height: 2.75rem;
+}
+#ui-root.mobile-theme .hulyNavPanel-header button {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+}
+
+#ui-root.mobile-theme .inbox__navigator [role='tab'] {
+  min-height: 2.25rem;
+}
+#ui-root.mobile-theme .notice__actions button {
+  min-height: 2.5rem;
+}
+
+#ui-root.mobile-theme .account-banner--strip [data-slot='button'] {
+  min-height: 2.25rem;
+}
+#ui-root.mobile-theme .thread-list__header :is(button, [role='checkbox']) {
+  position: relative;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+#ui-root.mobile-theme .thread-list__header {
+  height: 3rem;
+}
+#ui-root.mobile-theme .thread-list__header button[role='checkbox'] {
+  min-width: 1rem;
+  min-height: 1rem;
+}
+#ui-root.mobile-theme .thread-list__header button[role='checkbox']::after {
+  content: '';
+  position: absolute;
+  inset: -0.875rem;
+}
+#ui-root.mobile-theme .bulk-bar__button {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+}
+#ui-root.mobile-theme .thread-row__star {
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: -0.5rem -0.5rem -0.5rem 0;
+  opacity: 1;
+}
+#ui-root.mobile-theme .thread-view__composer:not(:empty) {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  padding-top: env(safe-area-inset-top);
+  background-color: var(--theme-bg-color);
+}
+#ui-root.mobile-theme .thread-view__composer > .composer {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border-top: none;
+}
+#ui-root.mobile-theme .thread-view__composer .composer__footer [data-slot='button'] {
+  min-height: 2.25rem;
+}
+
+#ui-root.mobile-theme .hulyNavPanel-container div[data-selected] > button[aria-expanded] {
+  position: relative;
+}
+#ui-root.mobile-theme .hulyNavPanel-container div[data-selected] > button[aria-expanded]::after {
+  content: '';
+  position: absolute;
+  inset: -0.875rem;
+}
+
+#ui-root.mobile-theme :is(.servone-channel, .hulyNavPanel-container, .activityMessage, .mail-app, .composer) :is(input:not([type='checkbox'], [type='radio'], [type='file']), textarea, [contenteditable='true']) {
+  font-size: 16px;
+}
+
+#ui-root.mobile-theme .thread-view__back {
+  flex-shrink: 0;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+}
+#ui-root.mobile-theme .thread-view__icon-group {
+  gap: 0.5rem;
+}
+#ui-root.mobile-theme .thread-view__icon-button,
+#ui-root.mobile-theme .thread-view__icon-group [data-slot='dropdown-menu-trigger'] {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+#ui-root.mobile-theme .thread-view__delete {
+  margin-inline: 0.5rem;
+}
+#ui-root.mobile-theme .message-item__recipients-toggle {
+  position: relative;
+}
+#ui-root.mobile-theme .message-item__recipients-toggle::after {
+  content: '';
+  position: absolute;
+  inset: -0.75rem;
+}

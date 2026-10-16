@@ -1,0 +1,97 @@
+#ui-root.mobile-theme .antiTable {
+  min-width: max-content;
+}
+#ui-root.mobile-theme .scroll:has(> .box > .antiTable) {
+  overflow-x: auto !important;
+}
+
+#ui-root.mobile-theme .popup:not(.fullsize) {
+  max-width: calc(100vw - 1rem) !important;
+  margin-inline: auto;
+}
+#ui-root.mobile-theme .popup > * {
+  max-width: 100% !important;
+}
+#ui-root.mobile-theme .popup.fullsize > *,
+#ui-root.mobile-theme .popup > .width-resizable {
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"] {
+    max-width: calc(100vw - 1rem) !important;
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+  }
+  [data-slot="popover-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="select-content"] {
+    max-width: calc(100vw - 1rem);
+  }
+}
+
+#ui-root.mobile-theme .antiTable:has([data-space-row]) {
+  display: block;
+  min-width: 0;
+}
+#ui-root.mobile-theme .antiTable:has([data-space-row]) thead {
+  display: none;
+}
+#ui-root.mobile-theme .antiTable:has([data-space-row]) tbody {
+  display: block;
+}
+#ui-root.mobile-theme .antiTable:has([data-space-row]) .antiTable-body__row {
+  position: relative;
+  display: block;
+  height: auto;
+  min-height: 3.5rem;
+}
+#ui-root.mobile-theme .antiTable:has([data-space-row]) td {
+  display: none;
+}
+#ui-root.mobile-theme .antiTable:has([data-space-row]) td:has([data-space-row]) {
+  display: flex;
+  align-items: center;
+  min-height: 3.5rem;
+  padding: 0 1rem;
+  font-size: 0.9375rem;
+}
+#ui-root.mobile-theme .antiTable:has([data-space-row]) :is(td, a, [data-space-row]) {
+  position: static;
+}
+#ui-root.mobile-theme .antiTable:has([data-space-row]) [data-space-row]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+#ui-root.mobile-theme .servone-header .ml-auto:has(label.cursor-text) {
+  flex: 1 1 100%;
+  min-width: 0;
+  margin-left: 0;
+}
+#ui-root.mobile-theme .servone-header .ml-auto > div:has(> label.cursor-text) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+#ui-root.mobile-theme .servone-header label.cursor-text {
+  flex: 1 1 auto;
+  width: auto;
+  height: 2.75rem;
+}
+#ui-root.mobile-theme :is(.servone-header label.cursor-text input, input[type='search']) {
+  font-size: 16px;
+}
+#ui-root.mobile-theme input[type='search'] {
+  height: 2.75rem;
+}
+
+#ui-root.mobile-theme [data-id='btnPhoneBack'] {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+#ui-root.mobile-theme .tiptap-left-menu.hidden {
+  display: none;
+}

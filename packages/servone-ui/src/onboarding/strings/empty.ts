@@ -1,0 +1,43 @@
+export const en: Record<string, string> = {
+  ServoneEmptyProjects: 'Add the first task your team is working on this week.',
+  ServoneEmptyProjectsAction: 'New task',
+  ServoneEmptySprints: "Group this week's tasks into a sprint to see what is left.",
+  ServoneEmptySprintsAction: 'Set up sprints',
+  ServoneEmptyChat: 'Post the first message. Everyone in this channel gets it.',
+  ServoneEmptyChatAction: 'Write a message',
+  ServoneEmptyDocs: 'Write meeting notes, specs or how-tos your team can find later.',
+  ServoneEmptyDocsAction: 'New doc',
+  ServoneEmptyDrive: 'Drop files here or upload. They stay next to the work they belong to.',
+  ServoneEmptyDriveAction: 'Upload',
+  ServoneEmptyCalendar: 'Plan your week, request leave, or schedule a meeting.',
+  ServoneEmptyCalendarAction: 'New event',
+  ServoneEmptyMeetings: 'Start a call from a calendar event or a chat. Nothing to set up.',
+  ServoneEmptyMeetingsAction: 'Schedule meeting',
+  ServoneEmptyWorkflow: 'Turn a request your team sends often into a form with an approver.',
+  ServoneEmptyWorkflowAction: 'Start from a template',
+  ServoneEmptyPeople: 'Add your team or import a staff list from CSV.',
+  ServoneEmptyPeopleInvite: 'Invite teammate',
+  ServoneEmptyPeopleImport: 'Import CSV'
+}
+
+export const vi: Record<string, string> = {
+  ServoneEmptyProjects: 'Thêm công việc đầu tiên mà nhóm bạn đang làm trong tuần này.',
+  ServoneEmptyProjectsAction: 'Tạo công việc',
+  ServoneEmptySprints: 'Gom các việc của tuần này vào một sprint để thấy còn lại bao nhiêu.',
+  ServoneEmptySprintsAction: 'Thiết lập sprint',
+  ServoneEmptyChat: 'Gửi tin nhắn đầu tiên. Mọi người trong kênh này đều nhận được.',
+  ServoneEmptyChatAction: 'Viết tin nhắn',
+  ServoneEmptyDocs: 'Viết biên bản họp, tài liệu đặc tả hay hướng dẫn để cả nhóm tìm lại sau này.',
+  ServoneEmptyDocsAction: 'Tạo tài liệu',
+  ServoneEmptyDrive: 'Thả tệp vào đây hoặc tải lên. Tệp nằm cạnh công việc mà chúng thuộc về.',
+  ServoneEmptyDriveAction: 'Tải lên',
+  ServoneEmptyCalendar: 'Lên kế hoạch cho tuần, xin nghỉ phép hoặc đặt lịch họp.',
+  ServoneEmptyCalendarAction: 'Tạo sự kiện',
+  ServoneEmptyMeetings: 'Bắt đầu cuộc gọi từ một sự kiện lịch hoặc một cuộc trò chuyện. Không cần thiết lập gì.',
+  ServoneEmptyMeetingsAction: 'Đặt lịch họp',
+  ServoneEmptyWorkflow: 'Biến một yêu cầu nhóm hay gửi thành biểu mẫu có người phê duyệt.',
+  ServoneEmptyWorkflowAction: 'Bắt đầu từ mẫu',
+  ServoneEmptyPeople: 'Thêm nhóm của bạn hoặc nhập danh sách nhân viên từ CSV.',
+  ServoneEmptyPeopleInvite: 'Mời đồng đội',
+  ServoneEmptyPeopleImport: 'Nhập CSV'
+}

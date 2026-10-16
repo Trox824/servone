@@ -1,0 +1,81 @@
+/* `!important` only against inline padding/min-height set from loginFormLayout.ts. */
+
+#ui-root .servone-login form.container {
+  padding: 0 !important;
+  min-height: 0 !important;
+}
+
+#ui-root .servone-login .container > .fs-title {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+#ui-root .servone-login .container > .title {
+  margin-top: 0.25rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+/* Upstream reserves a fixed 7.5rem status band; collapse it until a message exists. */
+#ui-root .servone-login .container > .status {
+  min-height: 0;
+  max-height: none;
+  padding-top: 0;
+  margin-block: 1rem;
+}
+#ui-root .servone-login .container > .status:not(:has([role='alert'])) {
+  display: none;
+}
+#ui-root .servone-login .form .workspace {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: transparent;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  transition: background-color 150ms, border-color 150ms;
+}
+#ui-root .servone-login .form .workspace:hover {
+  background-color: var(--accent);
+  border-color: var(--ring);
+}
+#ui-root .servone-login .form .workspace .text-xs,
+#ui-root .servone-login .form .workspace .text-sm {
+  color: var(--muted-foreground);
+}
+#ui-root .servone-login .container .readonly-warning {
+  color: var(--muted-foreground);
+}
+#ui-root .servone-login .container > .footer,
+#ui-root .servone-login .container .footer {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+#ui-root .servone-login .container .footer span {
+  opacity: 1;
+}
+#ui-root .servone-login .container .footer a {
+  color: var(--foreground);
+  font-weight: 500;
+  text-underline-offset: 4px;
+}
+#ui-root .servone-login .container .footer a:hover {
+  text-decoration: underline;
+}
+
+#ui-root .servone-login .header .description,
+#ui-root .servone-login .container .time {
+  color: var(--muted-foreground);
+}
+#ui-root .servone-login .header .email {
+  color: var(--foreground);
+}
+#ui-root .servone-login .container .separator {
+  background-color: var(--border);
+}

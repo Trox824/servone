@@ -1,0 +1,150 @@
+#ui-root.mobile-theme .settings-nav.phone {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  flex: 1 1 auto;
+  border: 0;
+}
+#ui-root.mobile-theme .settings-nav.phone .hulyNavItem-container {
+  min-height: 48px;
+  height: 48px;
+  padding-inline: 1rem;
+}
+#ui-root.mobile-theme .settings-nav.phone .hulyNavItem-label {
+  font-size: 0.9375rem;
+}
+#ui-root.mobile-theme .settings-main-panel.phone-hidden {
+  display: none;
+}
+#ui-root.mobile-theme .settings-back-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding-inline: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+#ui-root.mobile-theme .settings-back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 44px;
+  padding-inline: 0.5rem;
+  border: 0;
+  background: none;
+  color: var(--foreground);
+  font-size: 1rem;
+  font-weight: 600;
+}
+#ui-root.mobile-theme .settings-page-body.phone {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+#ui-root.mobile-theme .settings-main-panel input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+#ui-root.mobile-theme .settings-main-panel select,
+#ui-root.mobile-theme .settings-main-panel [data-slot="input"],
+#ui-root.mobile-theme .settings-main-panel [data-slot="select-trigger"],
+#ui-root.mobile-theme .settings-main-panel [data-slot="button"] {
+  min-height: 40px;
+}
+#ui-root.mobile-theme .settings-main-panel .antiButton:not(.icon-only),
+#ui-root.mobile-theme .settings-main-panel .button.large {
+  min-height: 40px;
+}
+#ui-root.mobile-theme [data-slot="select-item"],
+#ui-root.mobile-theme [data-slot="dropdown-menu-item"] {
+  min-height: 40px;
+}
+
+#ui-root.mobile-theme .notify-settings .columns {
+  flex-direction: column;
+}
+#ui-root.mobile-theme .notify-settings .navigation {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: none;
+  overflow-x: auto;
+}
+#ui-root.mobile-theme .notify-settings .navigation .scroll,
+#ui-root.mobile-theme .notify-settings .navigation .scroll > .box {
+  flex-direction: row;
+}
+#ui-root.mobile-theme .notify-settings .navigation .hulyNavItem-container {
+  width: auto;
+  flex: 0 0 auto;
+  min-height: 40px;
+  white-space: nowrap;
+}
+#ui-root.mobile-theme .notify-settings .content {
+  flex: 1 1 0;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+#ui-root.mobile-theme .notify-settings .hulyComponent-content__container > .separator,
+#ui-root.mobile-theme .notify-settings .hulyComponent-content__container > [class*="separator"] {
+  display: none;
+}
+#ui-root.mobile-theme .notify-settings .toggle,
+#ui-root.mobile-theme .notify-settings .hulyToggle-container {
+  min-height: 36px;
+}
+
+#ui-root.mobile-theme .api-tokens-table [data-slot="table-header"] {
+  display: none;
+}
+#ui-root.mobile-theme .api-tokens-table [data-slot="table-container"],
+#ui-root.mobile-theme .api-tokens-table table {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+#ui-root.mobile-theme .api-tokens-table tbody {
+  display: grid;
+  gap: 0.5rem;
+}
+#ui-root.mobile-theme .api-tokens-table tr {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.25rem 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+#ui-root.mobile-theme .api-tokens-table td {
+  display: block;
+  width: auto;
+  min-width: 0;
+  padding: 0;
+  white-space: normal;
+}
+#ui-root.mobile-theme .api-tokens-table td:nth-child(1) {
+  grid-column: 1;
+}
+#ui-root.mobile-theme .api-tokens-table td:nth-child(5) {
+  grid-column: 2;
+  grid-row: 1;
+}
+#ui-root.mobile-theme .api-tokens-table td:nth-child(2),
+#ui-root.mobile-theme .api-tokens-table td:nth-child(3),
+#ui-root.mobile-theme .api-tokens-table td:nth-child(4) {
+  grid-column: 1 / -1;
+  font-size: 0.8125rem;
+}
+#ui-root.mobile-theme .api-tokens-table td:nth-child(6) {
+  grid-column: 1 / -1;
+  text-align: left;
+}
+#ui-root.mobile-theme .api-tokens-table td:nth-child(6) [data-slot="button"] {
+  min-height: 40px;
+}
+
+#ui-root.mobile-theme .meetings-app > header {
+  padding-inline: 1rem;
+}
+#ui-root.mobile-theme .meetings-app > header [data-slot="button"] {
+  min-height: 36px;
+}

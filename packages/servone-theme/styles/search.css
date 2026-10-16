@@ -1,0 +1,82 @@
+/* Loaded after chrome.css; reverses its status-bar hide to host the master search strip. */
+
+/* Workbench only (same :has hook upstream Root uses), so login keeps the bar hidden.
+   `block`, not flex: .status-info's flex-grow needs the full-width inner row. */
+#ui-root.mobile-theme:has(.workbench-container) > .antiStatusBar {
+  display: block !important;
+  position: relative;
+  background: var(--shell);
+  border-bottom: none;
+}
+
+/* Keep in sync with the display rule above: .app height and popup offsets use this var. */
+#ui-root.mobile-theme:has(.workbench-container) {
+  --status-bar-height: 2.5rem;
+}
+
+/* Pill is absolute-centered on the bar so left/right group widths don't shift it. */
+#ui-root > .antiStatusBar .left-items {
+  overflow: visible !important;
+}
+/* Bar + chrome.css 8px gutter read as one 48px band; center content on the band. */
+#ui-root > .antiStatusBar > .flex-row-center {
+  box-sizing: border-box;
+  height: 100%;
+  padding-top: 0.5rem;
+}
+/* Right widget rail + gutter = 4rem; end icons on the card edge, not over the rail. */
+#ui-root:has(#sidebar) > .antiStatusBar > .flex-row-center {
+  padding-right: 4rem;
+}
+#ui-root > .antiStatusBar #servone-master-search {
+  position: absolute;
+  top: calc(50% + 0.25rem);
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  -webkit-app-region: no-drag;
+}
+
+/* Settings and Clock have no distinct class/id; target by position in Root's group. */
+#ui-root > .antiStatusBar .flex-row-reverse.flex-gap-0-5 > :nth-child(1),
+#ui-root > .antiStatusBar .flex-row-reverse.flex-gap-0-5 > :nth-child(2) {
+  display: none !important;
+}
+
+#ui-root > .antiStatusBar [id='view:component:SearchSelector'],
+/* Office recording controls: out of scope. */
+#ui-root > .antiStatusBar [id='media:component:MediaExt'],
+#ui-root > .antiStatusBar [id='recorder:component:RecorderExt'],
+/* servone-web has one page per window. */
+#ui-root > .antiStatusBar [id='workbench:component:WorkbenchTabs'] {
+  display: none !important;
+}
+
+/* Connection messages sat behind the centered pill; move to the left third. */
+#ui-root > .antiStatusBar .status-info {
+  position: absolute;
+  left: 1rem;
+  top: calc(50% + 0.25rem);
+  transform: translateY(-50%);
+  max-width: calc(50% - 17rem);
+  justify-content: flex-start;
+  overflow: hidden;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+#ui-root > .antiStatusBar .flex-row-reverse.flex-gap-0-5 {
+  margin-left: auto;
+}
+
+/* PopupInstance already makes the phone search popup full-size; the list must fill it. */
+#ui-root.mobile-theme .popup:has(> .selectPopup .actionsInput) > .selectPopup {
+  width: 100% !important;
+  height: 100%;
+  max-height: none;
+  border: none;
+}
+#ui-root.mobile-theme .popup:has(> .selectPopup .actionsInput) > .selectPopup > .scroll {
+  flex: 1 1 0;
+}

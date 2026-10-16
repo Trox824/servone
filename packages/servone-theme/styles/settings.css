@@ -1,0 +1,22 @@
+/* Scoped via .servone-profile so shared names (.title, .items) don't leak; identities card is in polish.css (.ac-body). */
+
+/* EditableAvatar doesn't forward style='modern' (64px variant); resize 'large' (72px), initials at 0.4x like chrome.css. */
+#ui-root .servone-profile .hulyAvatarSize-large {
+  width: 4rem;
+}
+#ui-root .servone-profile .hulyAvatarSize-large .ava-text {
+  font-size: 1.5rem;
+}
+
+/* SocialIdsEditor's .title row acts as the section heading here. */
+#ui-root .servone-profile .title {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+/* ChannelsEditor passes shape='circle' to its add button, which renders a pill next to 8px inputs. */
+#ui-root .servone-profile button.rounded-full {
+  border-radius: var(--radius);
+}

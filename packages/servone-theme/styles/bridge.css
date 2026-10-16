@@ -1,0 +1,227 @@
+/* Wins over global.scss's .theme-* blocks on source order only (same specificity), so must load after it. */
+
+/* `*` needed: global.scss/_vars.scss declare these in `* {}`, which beats a :root-only override. */
+:root,
+.theme-light,
+.theme-dark,
+* {
+  --font-family: 'Inter Variable', Inter, system-ui, -apple-system, sans-serif;
+
+  /* Match tailwind.css tiers (4/8/12px); `min` stays 2px for checkbox marks and tag chips. */
+  --min-BorderRadius: 0.125rem;
+  --extra-small-BorderRadius: 0.25rem;
+  --extra-small-focus-BorderRadius: 0.375rem;
+  --small-BorderRadius: 0.5rem;
+  --small-focus-BorderRadius: 0.625rem;
+  --medium-BorderRadius: 0.5rem;
+  --medium-focus-BorderRadius: 0.625rem;
+  --large-BorderRadius: 0.75rem;
+  --large-focus-BorderRadius: 0.875rem;
+}
+
+/* `*` needed: global.scss/_vars.scss declare these in `* {}`, which beats a :root-only override. */
+:root,
+.theme-light,
+.theme-dark,
+* {
+  --theme-bg-color: var(--background);
+  --theme-back-color: var(--background);
+  --theme-bg-accent-color: color-mix(in oklch, var(--foreground) 4%, transparent);
+  --theme-bg-dark-color: color-mix(in oklch, var(--foreground) 8%, transparent);
+  --theme-bg-divider-color: var(--border);
+  --theme-overlay-color: color-mix(in oklch, black 30%, transparent);
+
+  --theme-navpanel-color: var(--sidebar);
+  --theme-navpanel-hovered: color-mix(in oklch, var(--sidebar-foreground) 4%, transparent);
+  --theme-navpanel-selected: color-mix(in oklch, var(--sidebar-foreground) 8%, transparent);
+  --theme-navpanel-divider: var(--sidebar-border);
+  --theme-navpanel-border: var(--sidebar-border);
+  --theme-navpanel-icons-color: var(--sidebar-foreground);
+  --theme-navpanel-icons-divider: var(--sidebar-border);
+
+  --theme-panel-color: var(--card);
+  /* Page surface, not --card: --card made sticky headers/group bars lighter strips in dark mode. */
+  --theme-comp-header-color: var(--background);
+  --theme-statusbar-color: var(--sidebar);
+
+  --theme-popup-color: var(--popover);
+  --theme-popup-header: var(--muted);
+  --theme-popup-divider: var(--border);
+  --theme-popup-hover: var(--accent);
+  --theme-popup-trans-color: var(--popover);
+  --theme-popup-deactivated: var(--muted);
+  --theme-popup-checkicon: var(--primary);
+
+  --theme-dialog-background-color: var(--popover);
+  --theme-dialog-border-color: var(--border);
+  --theme-dialog-back-color: var(--muted-foreground);
+
+  --theme-content-color: var(--foreground);
+  --theme-caption-color: var(--foreground);
+  --theme-text-primary-color: var(--foreground);
+  --theme-accent-color: var(--foreground);
+  --theme-dark-color: var(--muted-foreground);
+  --theme-darker-color: var(--muted-foreground);
+  --theme-halfcontent-color: var(--muted-foreground);
+  --theme-trans-color: color-mix(in oklch, var(--foreground) 35%, transparent);
+  --theme-text-placeholder-color: var(--muted-foreground);
+  --theme-link-color: var(--link);
+  --theme-caret-color: var(--primary);
+  --global-accent-TextColor: var(--link);
+  --global-accent-IconColor: var(--link);
+  --global-accent-BackgroundColor: var(--primary);
+  --theme-calendar-today-bgcolor: color-mix(in oklch, var(--primary) 10%, transparent);
+  --theme-inbox-people-counter-bgcolor: color-mix(in oklch, var(--primary) 14%, transparent);
+
+  --theme-divider-color: var(--border);
+  --theme-list-border-color: var(--border);
+  --theme-list-divider-color: var(--border);
+  --theme-list-subheader-divider: var(--border);
+  --theme-table-border-color: var(--border);
+  --theme-refinput-border: var(--border);
+  --theme-refinput-divider: var(--border);
+
+  --theme-button-default: transparent;
+  --theme-button-hovered: var(--accent);
+  --theme-button-pressed: color-mix(in oklch, var(--foreground) 12%, transparent);
+  --theme-button-focused: var(--accent);
+  --theme-button-focused-border: var(--ring);
+  --theme-button-border: var(--border);
+  --theme-button-disabled: transparent;
+  --theme-button-container-color: var(--muted);
+
+  --theme-button-icon-default: transparent;
+  --theme-button-icon-hovered: var(--accent);
+  --theme-button-icon-pressed: color-mix(in oklch, var(--foreground) 12%, transparent);
+
+  --theme-button-contrast-color: var(--primary-foreground);
+  --theme-button-contrast-enabled: var(--primary-foreground);
+  --theme-button-contrast-hovered: var(--primary-foreground);
+  --theme-button-contrast-pressed: var(--primary-foreground);
+  --theme-button-contrast-disabled: color-mix(in oklch, var(--primary-foreground) 60%, transparent);
+  --theme-button-contrast-disabled-color: color-mix(in oklch, var(--primary) 50%, transparent);
+  --theme-button-contrast-border: var(--primary);
+
+  --theme-breadcrumb-default: transparent;
+  --theme-breadcrumb-hovered: var(--accent);
+  --theme-breadcrumb-pressed: color-mix(in oklch, var(--foreground) 10%, transparent);
+
+  --primary-button-color: var(--primary-foreground);
+  --primary-button-content-color: color-mix(in oklch, var(--primary-foreground) 80%, transparent);
+  --primary-button-border: color-mix(in oklch, var(--primary-foreground) 9%, transparent);
+  --primary-button-default: var(--primary);
+  --primary-button-hovered: color-mix(in oklch, var(--primary) 88%, var(--foreground) 12%);
+  --primary-button-pressed: color-mix(in oklch, var(--primary) 80%, black 10%);
+  --primary-button-focused: var(--primary);
+  --primary-button-disabled: color-mix(in oklch, var(--primary) 30%, transparent);
+  --primary-button-disabled-color: color-mix(in oklch, var(--primary-foreground) 60%, transparent);
+
+  --secondary-button-color: var(--secondary-foreground);
+  --secondary-button-default: var(--secondary);
+  --secondary-button-hovered: color-mix(in oklch, var(--secondary) 85%, var(--foreground) 15%);
+  --secondary-button-pressed: color-mix(in oklch, var(--secondary) 75%, var(--foreground) 25%);
+  --secondary-button-focused: var(--secondary);
+  --secondary-button-disabled: color-mix(in oklch, var(--secondary) 50%, transparent);
+  --secondary-button-disabled-color: color-mix(in oklch, var(--secondary-foreground) 40%, transparent);
+
+  --theme-editbox-focus-border: var(--ring);
+  --theme-editbox-focus-color: color-mix(in oklch, var(--ring) 12%, transparent);
+  --theme-checkbox-color: var(--primary-foreground);
+  --theme-checkbox-bg-color: var(--primary);
+  --theme-checkbox-border: var(--border);
+  --theme-toggle-bg-color: var(--muted);
+  --theme-toggle-bg-hover: color-mix(in oklch, var(--muted) 80%, var(--foreground) 20%);
+  --theme-toggle-on-bg-color: var(--primary);
+  --theme-toggle-on-bg-hover: color-mix(in oklch, var(--primary) 88%, var(--foreground) 12%);
+  --theme-toggle-sw-color: var(--background);
+  --theme-toggle-on-sw-color: var(--primary-foreground);
+
+  --theme-error-color: var(--destructive);
+  --theme-lost-color: var(--destructive);
+  --theme-urgent-color: var(--destructive);
+  --theme-state-negative-color: var(--destructive);
+  --theme-state-negative-background-color: color-mix(in oklch, var(--destructive) 15%, transparent);
+  --theme-state-negative-border-color: color-mix(in oklch, var(--destructive) 25%, transparent);
+  --theme-state-primary-color: var(--primary);
+  --theme-state-primary-background-color: color-mix(in oklch, var(--primary) 10%, transparent);
+  --theme-state-primary-border-color: color-mix(in oklch, var(--primary) 25%, transparent);
+  --theme-state-regular-color: var(--muted-foreground);
+  --theme-state-regular-background-color: color-mix(in oklch, var(--muted-foreground) 10%, transparent);
+  --theme-state-regular-border-color: color-mix(in oklch, var(--muted-foreground) 15%, transparent);
+  --theme-state-ghost-color: var(--muted-foreground);
+  --theme-state-ghost-background-color: color-mix(in oklch, var(--muted-foreground) 10%, transparent);
+
+  --theme-tooltip-bg: var(--popover);
+  --theme-tooltip-color: var(--popover-foreground);
+  --theme-tooltip-key-bg: var(--muted);
+
+  --theme-label-blue-color: var(--primary);
+  --theme-label-blue-bg-color: color-mix(in oklch, var(--primary) 8%, transparent);
+  --theme-label-blue-border-color: color-mix(in oklch, var(--primary) 20%, transparent);
+  --theme-label-gray-color: var(--muted-foreground);
+  --theme-label-gray-bg-color: color-mix(in oklch, var(--muted-foreground) 6%, transparent);
+  --theme-label-gray-border-color: color-mix(in oklch, var(--muted-foreground) 15%, transparent);
+
+  --theme-kanban-card-bg-color: var(--card);
+  --theme-kanban-card-border: var(--border);
+  --theme-kanban-card-footer: var(--muted);
+
+  --theme-list-row-color: var(--card);
+  --theme-list-subheader-color: var(--muted);
+  --theme-list-button-color: var(--muted);
+  --theme-list-button-hover: var(--accent);
+  --theme-link-button-color: var(--muted);
+  --theme-link-button-hover: var(--accent);
+
+  --theme-table-header-color: var(--muted);
+  --theme-table-row-color: var(--card);
+
+  --theme-tablist-color: color-mix(in oklch, var(--foreground) 2%, transparent);
+  --theme-tablist-plain-color: var(--primary);
+
+  --theme-popup-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --popup-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --popup-panel-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --card-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --button-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --primary-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+
+  --scrollbar-bar-color: color-mix(in oklch, var(--foreground) 18%, transparent);
+  --scrollbar-bar-hover: color-mix(in oklch, var(--foreground) 32%, transparent);
+  --scrollbar-track-color: transparent;
+}
+
+/* --global-* (_lumia-colors.scss) isn't covered above; these two failed AA on notification row tint (audit M-1).
+   Hand-picked hex: --muted-foreground only reaches ~3.8:1 on that tint, and the link must stay blue. */
+.theme-light {
+  --global-primary-LinkColor: #2952c7;
+  --global-tertiary-TextColor: #4b5768;
+}
+
+.theme-dark {
+  --global-primary-LinkColor: #78a3ff;
+  --global-tertiary-TextColor: #a9b3c4;
+}
+
+/* Lumia neutrals are blue-tinted, and upstream dark --global-ui-BackgroundColor lacks `#` (invalid); restate on tokens. */
+:root,
+.theme-light,
+.theme-dark,
+.theme-system {
+  --global-ui-BackgroundColor: color-mix(in oklch, var(--foreground) 5%, transparent);
+  --global-ui-BorderColor: var(--border);
+  --global-ui-hover-BackgroundColor: color-mix(in oklch, var(--foreground) 8%, transparent);
+  --global-ui-active-BackgroundColor: color-mix(in oklch, var(--foreground) 14%, transparent);
+  --global-ui-highlight-BackgroundColor: color-mix(in oklch, var(--foreground) 4%, transparent);
+  --global-ui-hover-highlight-BackgroundColor: color-mix(in oklch, var(--foreground) 10%, transparent);
+  --global-surface-01-BackgroundColor: var(--background);
+  --global-surface-01-BorderColor: var(--border);
+  --global-surface-01-hover-BackgroundColor: var(--card);
+  --global-surface-02-BackgroundColor: var(--card);
+  --global-surface-02-BorderColor: var(--border);
+  --global-surface-03-hover-BackgroundColor: var(--accent);
+  --global-subtle-ui-BorderColor: color-mix(in oklch, var(--border) 60%, transparent);
+  --global-popover-BackgroundColor: var(--popover);
+  --global-popover-hover-BackgroundColor: var(--accent);
+  --global-popover-BorderColor: var(--border);
+}

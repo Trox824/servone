@@ -1,0 +1,147 @@
+/* No preflight: it would reset Huly's SCSS. */
+
+/* Not in @layer: unlayered Huly SCSS (e.g. `button { background-color: transparent }`) beats layered rules regardless of specificity. */
+@import "tailwindcss/theme.css";
+@import "tailwindcss/utilities.css";
+
+/* Vendored shadcn-svelte data-* @custom-variants (see shadcn-variants.css for why vendored). */
+@import "./shadcn-variants.css";
+
+@property --tw-enter-opacity { syntax: "*"; inherits: false; initial-value: 1; }
+@property --tw-enter-scale { syntax: "*"; inherits: false; initial-value: 1; }
+@property --tw-enter-translate-x { syntax: "*"; inherits: false; initial-value: 0; }
+@property --tw-enter-translate-y { syntax: "*"; inherits: false; initial-value: 0; }
+@property --tw-exit-opacity { syntax: "*"; inherits: false; initial-value: 1; }
+@property --tw-exit-scale { syntax: "*"; inherits: false; initial-value: 1; }
+
+@keyframes enter {
+  from {
+    opacity: var(--tw-enter-opacity);
+    transform: translate3d(var(--tw-enter-translate-x), var(--tw-enter-translate-y), 0) scale(var(--tw-enter-scale));
+  }
+}
+
+@keyframes exit {
+  to {
+    opacity: var(--tw-exit-opacity);
+    transform: scale(var(--tw-exit-scale));
+  }
+}
+
+@utility animate-in {
+  animation: enter var(--tw-duration, 150ms) var(--tw-ease, ease);
+}
+@utility animate-out {
+  animation: exit var(--tw-duration, 150ms) var(--tw-ease, ease);
+}
+@utility fade-in-* {
+  --tw-enter-opacity: calc(--value(number) / 100);
+}
+@utility fade-out-* {
+  --tw-exit-opacity: calc(--value(number) / 100);
+}
+@utility zoom-in-* {
+  --tw-enter-scale: calc(--value(number) / 100);
+}
+@utility zoom-out-* {
+  --tw-exit-scale: calc(--value(number) / 100);
+}
+@utility slide-in-from-top-* {
+  --tw-enter-translate-y: calc(var(--spacing) * --value(number) * -1);
+}
+@utility slide-in-from-bottom-* {
+  --tw-enter-translate-y: calc(var(--spacing) * --value(number));
+}
+@utility slide-in-from-left-* {
+  --tw-enter-translate-x: calc(var(--spacing) * --value(number) * -1);
+}
+@utility slide-in-from-right-* {
+  --tw-enter-translate-x: calc(var(--spacing) * --value(number));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-in,
+  .animate-out {
+    animation: none;
+  }
+}
+
+/* Keep narrow: each path is a webpack context dep; packages/ or plugins/ (node_modules symlinks) crashes the watcher. */
+@source "../../servone-ui/src";
+/* Huly's Scroller uses class `invert` (rail); any "invert" word in src would emit the filter utility and wash out rail icons. */
+@source not inline("invert");
+
+/* `.theme-dark.white` = the login/onboarding island while the app theme is light (see tokens.css). */
+@custom-variant dark (&:where(.theme-dark:not(.white), .theme-dark:not(.white) *));
+
+/* Layered so Huly rules win. Without preflight, border-* falls back to currentColor (near-black lines). */
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
+  }
+
+  /* Huly resets input but not the UA 2px inset border -> double frame in bordered wrappers. */
+  input,
+  textarea,
+  select {
+    border-width: 0;
+    border-style: solid;
+  }
+
+  /* Huly's button reset sets no color -> UA buttontext (black) in dark mode. */
+  button,
+  input,
+  optgroup,
+  select,
+  textarea {
+    color: inherit;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-shell: var(--shell);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Fixed scale (servone-web theme.css), not --radius-derived; lg deliberately = md. */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+
+  --font-sans: var(--font-family);
+}

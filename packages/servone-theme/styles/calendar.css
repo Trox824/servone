@@ -1,0 +1,472 @@
+/* Svelte component styles are 0,2,0, so #ui-root wins without !important (except where upstream uses one). */
+
+/* Colleague overlay colours: 600-level in light, 400-level in dark so dots and tinted text stay AA on each background.
+   On :root, not #ui-root, because kit popovers portal to body. */
+:root {
+  --lich-overlay-1: oklch(0.588 0.158 241.966);
+  --lich-overlay-2: oklch(0.666 0.179 58.318);
+  --lich-overlay-3: oklch(0.596 0.145 163.225);
+  --lich-overlay-4: oklch(0.577 0.245 27.325);
+  --lich-overlay-5: oklch(0.541 0.281 293.009);
+  --lich-overlay-6: oklch(0.592 0.249 0.584);
+}
+.theme-dark:not(.white) {
+  --lich-overlay-1: oklch(0.746 0.16 232.661);
+  --lich-overlay-2: oklch(0.828 0.189 84.429);
+  --lich-overlay-3: oklch(0.765 0.177 163.223);
+  --lich-overlay-4: oklch(0.704 0.191 22.216);
+  --lich-overlay-5: oklch(0.702 0.183 293.541);
+  --lich-overlay-6: oklch(0.718 0.202 349.761);
+}
+/* Any native control left in Lịch otherwise renders as a white system widget in dark mode. */
+.theme-dark:not(.white) [data-lich] {
+  color-scheme: dark;
+}
+
+/* Defined per theme in _colors.scss and not mapped by bridge.css, so events kept Huly's blue. */
+#ui-root {
+  --calendar-event-back-color: color-mix(in oklch, var(--primary) 16%, var(--background));
+  --calendar-event-border-color: color-mix(in oklch, var(--primary) 28%, transparent);
+  --calendar-event-handle-color: var(--primary);
+  --theme-calendar-zone: transparent;
+}
+
+/* Upstream hatches the container and covers weekdays with solid cells; flatten hatch to a tint. */
+#ui-root .calendar-container.timeline-grid-bg {
+  background-image: none;
+  background-color: color-mix(in oklch, var(--foreground) 3%, var(--background));
+}
+
+/* 70%: full-strength border across 32 rows reads as ruled paper. */
+#ui-root .calendar-container .empty-cell {
+  border-left: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+}
+#ui-root .calendar-container .empty-cell:not(.weekend),
+#ui-root .calendar-container .clear-cell,
+#ui-root .calendar-container .footer-cell {
+  background-color: var(--background);
+}
+#ui-root .calendar-container .empty-cell:hover {
+  background-color: color-mix(in oklch, var(--foreground) 4%, var(--background));
+}
+
+#ui-root .calendar-container .time-cell {
+  justify-content: flex-end;
+  padding-right: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+  background-color: var(--background);
+}
+
+#ui-root .calendar-container .sticky-header {
+  background-color: var(--background);
+}
+#ui-root .calendar-container .sticky-header:not(.head) {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+#ui-root .calendar-container .sticky-header.head.title .day {
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--foreground);
+  border-radius: 9999px;
+}
+#ui-root .calendar-container .sticky-header.head.title .day.today {
+  color: var(--primary-foreground);
+  background-color: var(--primary);
+}
+/* span.today is the "Today" word above the weekday, not the date pill. */
+#ui-root .calendar-container .sticky-header.head.title .weekday,
+#ui-root .calendar-container .sticky-header.head.title span.today {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--muted-foreground);
+}
+#ui-root .calendar-container .sticky-header.head.title span.today {
+  color: var(--primary);
+}
+
+#ui-root .calendar-container .zone {
+  padding: 0;
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: var(--muted-foreground);
+  background-color: transparent;
+}
+
+#ui-root .calendar-container .header-time {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  background-color: var(--accent);
+  border-radius: calc(var(--radius) - 2px);
+}
+
+#ui-root .calendar-container .allday-header {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+
+/* Upstream uses --highlight-red, which exists nowhere else in the skin. */
+#ui-root .calendar-container .now-line,
+#ui-root .calendar-container .now-line::before {
+  background-color: var(--destructive);
+}
+#ui-root .calendar-container .now-line::before {
+  border-radius: calc(var(--radius) - 4px);
+}
+#ui-root .calendar-container .now-line::after {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--destructive-foreground);
+}
+
+/* Upstream dims past events to 40%, near-invisible on a 16% tint. */
+#ui-root .calendar-element.past .event-container {
+  opacity: 0.6;
+}
+
+#ui-root .month-container .header .monthYear {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+#ui-root .month-container .caption .weekdays {
+  height: 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+#ui-root .month-container .caption .weekdays,
+#ui-root .month-container .calendar .day {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+#ui-root .month-container .calendar .day {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--foreground);
+  background-color: transparent;
+  border-radius: calc(var(--radius) - 2px);
+}
+#ui-root .month-container .calendar .day.day-off {
+  color: var(--muted-foreground);
+}
+#ui-root .month-container .calendar .day:hover {
+  color: var(--foreground);
+  background-color: var(--accent);
+}
+#ui-root .month-container .calendar .day.today {
+  font-weight: 600;
+  color: var(--primary);
+}
+#ui-root .month-container .calendar .day.selected,
+#ui-root .month-container .calendar .day.selected:hover,
+#ui-root .month-container .calendar .day.selected.today {
+  color: var(--primary-foreground);
+  background-color: var(--primary);
+}
+#ui-root .month-container .calendar .day.focused {
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--ring) 45%, transparent);
+}
+
+/* MonthSquare (DatePopup/DateRangePopup): upstream 1rem captions in 2rem cells overlapped ("Wed"/"Thu"). */
+#ui-root .month-container .calendar > .caption {
+  width: 2rem;
+  height: 1.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+/* Upstream draws the weekday rule at its own 2.25rem caption height; keep in sync with the caption height above. */
+#ui-root .month-container .calendar::before {
+  top: 1.5rem;
+}
+#ui-root .month-container .calendar > .container > .day {
+  font-size: 0.8125rem;
+  color: var(--foreground);
+  border-radius: calc(var(--radius) - 2px);
+}
+#ui-root .month-container .calendar > .container > .day.wrongMonth {
+  color: var(--muted-foreground);
+  opacity: 0.5;
+}
+/* A selected date also shows in the neighbouring month's spill-over cells; only its own month marks it. */
+#ui-root .month-container .calendar > .container.wrongMonth,
+#ui-root .month-container .calendar > .container > .day.wrongMonth.selected {
+  background-color: transparent;
+}
+#ui-root .month-container .calendar > .container > .day.today:not(.selected, .range) {
+  font-weight: 600;
+  color: var(--primary);
+  background-color: transparent;
+  border-color: var(--border);
+}
+#ui-root .month-container .calendar > .container > .day.selected:not(.wrongMonth) {
+  color: var(--primary-foreground);
+  background-color: var(--primary);
+}
+#ui-root .month-container .calendar > .container > .day:not(.wrongMonth, .selected):hover {
+  color: var(--foreground);
+  background-color: var(--accent);
+}
+
+/* Upstream stretches the Shifts panel to full popup height and tucks it under the popup; content-height, it read as a menu clipped by the dialog. */
+#ui-root .shift-container {
+  top: 0;
+  right: calc(100% + 0.5rem);
+  bottom: auto;
+  width: 10rem;
+  min-width: 10rem;
+  padding: 0.25rem;
+  background: var(--popover);
+  border-color: var(--border);
+  border-radius: var(--radius);
+}
+#ui-root .shift-container .btn {
+  margin-right: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.8125rem;
+  border-radius: calc(var(--radius) - 2px);
+}
+#ui-root .shift-container .btn:hover {
+  background-color: var(--accent);
+}
+/* Date-only mode has no minute/hour group, so upstream's list opens with a stray divider. */
+#ui-root .shift-container .divider:first-child {
+  display: none;
+}
+
+#ui-root .calendar-slot-row {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+/* Huly's 20px headings; the skin titles pages at 15px (chrome.css Breadcrumb). */
+#ui-root .toDos-container .heading-bold-20,
+#ui-root .hulyComponent .heading-medium-20 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+#ui-root .toDos-container .container:focus-within {
+  background-color: var(--card);
+  border-color: var(--border);
+}
+
+#ui-root .hulyToDoLine-container .hulyToDoLine-title {
+  font-size: 0.8125rem;
+}
+#ui-root .hulyToDoLine-container:hover {
+  background-color: color-mix(in oklch, var(--foreground) 4%, var(--background));
+}
+
+#ui-root .eventPopup-container {
+  min-width: 24rem;
+  max-width: 24rem;
+  background-color: var(--popover);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 4px);
+}
+
+#ui-root .eventPopup-container .header {
+  padding: 0.75rem 0.75rem 0.25rem;
+}
+#ui-root .eventPopup-container .header input {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+#ui-root .eventPopup-container .block:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+#ui-root .eventPopup-container .block:not(.rightCropPadding):not(.description) {
+  padding: 0.625rem 0.875rem;
+}
+#ui-root .eventPopup-container .block.rightCropPadding {
+  padding: 0.625rem 0.875rem 0.625rem 1rem;
+}
+#ui-root .eventPopup-container .block.description {
+  padding: 0 1rem;
+}
+#ui-root .eventPopup-container .block {
+  font-size: 0.8125rem;
+}
+
+/* Upstream bare 11px ghost div read as a disabled control. */
+#ui-root .eventPopup-container .antiButton.ghost.x-small {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+#ui-root .eventPopup-container > .flex-between.p-5 {
+  padding: 0.75rem !important;
+}
+
+#ui-root .days-of-week-header {
+  min-height: 2rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  background-color: var(--background);
+  border-bottom: 1px solid var(--border);
+}
+
+#ui-root .days-of-month .cell {
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+}
+#ui-root .days-of-month .cell.left-border {
+  border-left: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+}
+#ui-root .days-of-month .cell.weekend {
+  background-color: color-mix(in oklch, var(--foreground) 3%, var(--background));
+}
+#ui-root .days-of-month .cell.wrongMonth {
+  color: var(--muted-foreground);
+  opacity: 0.6;
+}
+
+/* Day.svelte hard-codes .today as #3871e0. */
+#ui-root .days-of-month .date {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--foreground);
+  border-radius: 9999px;
+}
+#ui-root .days-of-month .date.today,
+#ui-root .days-of-month .cell .today {
+  color: var(--primary-foreground);
+  background-color: var(--primary);
+}
+#ui-root .days-of-month .cell .selected:not(.today, .wrongMonth) {
+  color: var(--foreground);
+  background-color: var(--accent);
+  border-color: var(--border);
+}
+
+#ui-root .days-of-month .event {
+  padding: 0.0625rem 0.375rem;
+  font-size: 0.75rem;
+  color: var(--foreground);
+  background-color: color-mix(in oklch, var(--primary) 16%, var(--background));
+  border-radius: calc(var(--radius) - 4px);
+}
+#ui-root .days-of-month .event:hover {
+  background-color: color-mix(in oklch, var(--primary) 24%, var(--background));
+}
+
+#ui-root .scheduleEditor-container {
+  background-color: var(--popover);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 4px);
+}
+#ui-root .scheduleEditor-container .header {
+  padding: 0.75rem 0.75rem 0.25rem;
+}
+#ui-root .scheduleEditor-container .header input {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+#ui-root .scheduleEditor-container .block {
+  padding: 0.625rem 0.875rem 0.625rem 1rem;
+  font-size: 0.8125rem;
+}
+#ui-root .scheduleEditor-container .block.row {
+  padding: 0 1rem 0.5rem;
+}
+#ui-root .scheduleEditor-container .block:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+#ui-root .scheduleEditor-container > .flex-between.p-5 {
+  padding: 0.75rem !important;
+}
+
+/* Lịch only (data-lich on its root), so other DayCalendar hosts keep the skin above. */
+#ui-root [data-lich] .calendar-container .empty-cell.weekend {
+  background-color: color-mix(in oklch, var(--muted) 30%, var(--background));
+}
+#ui-root [data-lich] .calendar-container .empty-cell.weekend:hover {
+  background-color: color-mix(in oklch, var(--foreground) 4%, var(--background));
+}
+/* Upstream pins each cell to a measured colWidth that goes stale when the day count changes, pushing columns off-screen.
+   Letting the 1fr tracks size the cells keeps the grid inside the viewport; inline style needs !important. */
+#ui-root [data-lich] .calendar-container .empty-cell {
+  width: auto !important;
+  min-width: 0;
+}
+
+/* Header row height is fixed at 4.75rem in DayCalendar's layout math, so stack weekday over date instead of shrinking it. */
+#ui-root [data-lich] .calendar-container .sticky-header.head.title {
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+}
+#ui-root [data-lich] .calendar-container .sticky-header.head.title.center {
+  align-items: center;
+}
+#ui-root [data-lich] .calendar-container .sticky-header.head.title > .weekday,
+#ui-root [data-lich] .calendar-container .sticky-header.head.title > .flex-col {
+  order: -1;
+}
+/* The primary date pill already marks today; the extra "Today" word doubled it. */
+#ui-root [data-lich] .calendar-container .sticky-header.head.title .flex-col > span.today,
+#ui-root [data-lich] .calendar-container .sticky-header.head.title .header-time {
+  display: none;
+}
+#ui-root [data-lich] .calendar-container .sticky-header.head.title .weekday {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+#ui-root [data-lich] .calendar-container .sticky-header.head.title .flex-col .weekday {
+  color: var(--primary);
+}
+#ui-root [data-lich] .calendar-container .sticky-header.head.title .day {
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Gutter labels (zone, All day, hours) share one size and sit right-aligned against the grid. */
+#ui-root [data-lich] .calendar-container .sticky-header.head.center:not(.title) {
+  justify-content: flex-end;
+  padding-right: 0.5rem;
+}
+#ui-root [data-lich] .calendar-container .allday-header {
+  align-items: flex-end;
+  padding-right: 0.5rem;
+}
+#ui-root [data-lich] .calendar-container .allday-header > .flex-center {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+#ui-root [data-lich] .calendar-container .allday-container {
+  background-color: var(--background);
+}
+
+/* chrome.css zeroes side margins on children of Huly .gap-N, which beats kit ml-auto (Command item checks, Lịch header); kit popovers portal to body, so this cannot sit under [data-lich]. */
+:is(.gap-2, .gap-3, .gap-4):not(.reverse) > :is(.ml-auto, .ms-auto, .mx-auto):not(:first-child) {
+  margin-left: auto;
+}
+/* Same reset breaks the kit footers' -mx-4 bleed inside the gap-4 dialog content; keep in sync with dialog-footer and alert-dialog-footer. */
+:is(.gap-2, .gap-3, .gap-4):not(.reverse) > :is([data-slot='dialog-footer'], [data-slot='alert-dialog-footer']):not(:first-child, .mx-0) {
+  margin-left: -1rem;
+}
+.gap-1 > :is(.mr-auto, .me-auto, .mx-auto):not(:last-child) {
+  margin-right: auto;
+}

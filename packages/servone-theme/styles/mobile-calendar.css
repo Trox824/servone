@@ -1,0 +1,54 @@
+#ui-root.mobile-theme [data-lich] header button:not([data-slot='input-group-addon'] *) {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+#ui-root.mobile-theme [data-lich] header [data-slot='input-group'] {
+  height: 2.75rem;
+}
+#ui-root.mobile-theme [data-lich-sheet] > nav {
+  width: 100%;
+  border-right: 0;
+}
+#ui-root.mobile-theme [data-lich] header [data-slot='select-trigger'] {
+  min-height: 2.75rem;
+}
+#ui-root.mobile-theme [data-lich-sheet] :is(label, button:not([role='checkbox'])) {
+  min-height: 2.75rem;
+}
+#ui-root.mobile-theme [data-lich-sheet] :is([class*='h-8'], [class*='h-7']) {
+  min-height: 2.75rem;
+}
+#ui-root.mobile-theme [data-lich-sheet] [role='checkbox'] {
+  position: relative;
+}
+#ui-root.mobile-theme [data-lich-sheet] [role='checkbox']::after {
+  content: '';
+  position: absolute;
+  inset: -0.625rem;
+}
+/* Popovers and sheets portal to body, outside #ui-root. */
+:root:has(#ui-root.mobile-theme) [data-lich-pop] :is(button, [role='radio'], [role='combobox'], [role='option'], [data-slot='input'], [data-slot='input-group'], [data-slot='command-item']):not([role='checkbox'], [data-slot='switch'], [data-slot='radio-group-item']) {
+  min-height: 2.75rem;
+}
+:root:has(#ui-root.mobile-theme) [data-lich-pop] :is(button[data-slot='button'][class*='size-'], button[aria-label]):not([data-slot='switch'], [data-slot='radio-group-item']) {
+  min-width: 2.75rem;
+}
+#ui-root.mobile-theme [data-lich] :is(input, textarea),
+:root:has(#ui-root.mobile-theme) [data-lich-pop] :is(input, textarea) {
+  font-size: 16px;
+}
+#ui-root.mobile-theme [data-lich] .now-line::before {
+  top: -0.25rem;
+  left: -0.25rem;
+  right: auto;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+}
+#ui-root.mobile-theme [data-lich] .now-line.upperLabel::before,
+#ui-root.mobile-theme [data-lich] .now-line.lowerLabel::before {
+  top: -0.25rem;
+}
+#ui-root.mobile-theme [data-lich] .now-line::after {
+  display: none;
+}

@@ -1,0 +1,96 @@
+/*
+ * @servone/theme — Inbox list (plugins/inbox-resources/src/components/InboxCard.svelte,
+ * not edited here — upstream, Svelte-scoped).
+ *
+ * Bug (audit F-3): upstream's `.inbox-card` gives `:hover:not(.selected)` and `.selected`
+ * the exact same background color (`--global-ui-highlight-BackgroundColor`). Marking one
+ * notification's row read removes that row's context and the list reflows upward; the
+ * browser re-evaluates `:hover` against whichever row is now sitting under the still
+ * pointer, so that row lights up in the identical color as the one row that is genuinely
+ * open — a time-pressed user reads two (or three) simultaneously "selected" rows.
+ *
+ * Fix: split hover from selected using the same convention table.css already applies to
+ * antiTable / listGrid rows — a 50% --muted wash for hover, a solid --muted fill only for
+ * the real selected state — so a reflow-hover artifact can no longer look like a second
+ * selection. `#ui-root` wins the specificity fight against the upstream scoped rule (same
+ * approach as table.css / chrome.css), so no `!important` is needed.
+ */
+
+/*
+ * Round-2 re-audit (F-3 again): the list sits on the navigator surface (`--sidebar`, light
+ * 0.94 at the time), and `--muted` (light 0.97) was *lighter* than that surface — so the open row rendered
+ * as the one white card among grey rows, and a reader saw every *other* row as "highlighted".
+ * `--sidebar-accent` is foreground at 7% alpha, so it darkens on the light sidebar and
+ * lightens on the dark one — the same token NavItem.svelte uses for the navigator's own
+ * selected rows, which is what this list should visually match.
+ */
+#ui-root .inbox-card:hover:not(.selected) {
+  background-color: color-mix(in oklch, var(--sidebar-accent) 55%, transparent);
+}
+
+/* DESIGN.md: the open row takes the primary-soft selection fill, the one place the accent tints a list. */
+#ui-root .inbox-card.selected {
+  background-color: color-mix(in oklch, var(--primary) 10%, transparent);
+}
+
+.theme-dark #ui-root .inbox-card.selected {
+  background-color: color-mix(in oklch, var(--primary) 22%, transparent);
+}
+
+/*
+ * Bug (audit F-3, continued): a second, deeper source of the same symptom. The row that
+ * still lit up after the fix above traced to `packages/ui/src/components/ListView.svelte`'s
+ * `selection` prop (an ListViewItem.svelte `.selection` class), bound in
+ * `plugins/inbox-resources/src/components/InboxNavigation.svelte` to `listSelection`, a raw
+ * array index — not an id. Archiving a row above the tracked index shrinks the list without
+ * recomputing `listSelection`, so the stale index now lands on a different, unrelated row,
+ * which ListViewItem then paints with the same highlight background as a real selection.
+ * The row that is genuinely open stays correct regardless — it is tracked separately via
+ * `.highlighted` (id-based, `doc?._id`) — so this rule only needs to blank the stray
+ * `.selection`-only paint; `.highlighted` keeps rendering.
+ *
+ * This is a state bug in upstream `packages/ui` (out of scope for this pass — see the shared
+ * brief's file-ownership rule), not something CSS can truly fix: keyboard Backspace/Enter in
+ * `InboxNavigation.svelte` still act on the stale index, not just its paint. Scoped to
+ * `.inbox-list` only, so other `ListView` consumers elsewhere in the app keep their normal
+ * keyboard-selection highlight.
+ */
+#ui-root .inbox-list .list-item.selection:not(.highlighted) {
+  background-color: transparent;
+}
+
+/*
+ * With the card now translucent (7% alpha), ListViewItem's own `.highlighted` paint — the
+ * lumia blue `--global-ui-hover-highlight-BackgroundColor` — showed through and tinted the
+ * open row blue. The card's `.selected` fill is the one selection cue; the row underneath
+ * stays neutral.
+ */
+#ui-root .inbox-list .list-item.highlighted {
+  background-color: transparent;
+}
+
+/*
+ * Frame: chrome.css flattens `contentPanel > .hulyPanels-container > .hulyComponent`, but
+ * InboxApplication.svelte nests a second `.hulyPanels-container.inbox`, so the direct-child
+ * rule misses it. The open-item pane kept components.scss' own 1px border and 10px radius,
+ * a second frame 1px inside the content card, stopping short of the card's bottom edge.
+ * Flatten it like every other app; the navigator draws the one divider instead.
+ */
+#ui-root [data-id='contentPanel'] .hulyPanels-container.inbox > .hulyComponent.inbox__panel {
+  margin: 0;
+  height: 100%;
+  border: none;
+  border-radius: 0;
+}
+
+#ui-root [data-id='contentPanel'] .hulyPanels-container.inbox > .inbox__navigator {
+  border-right: 1px solid var(--border);
+}
+
+/*
+ * InboxHeader.svelte paints the "Inbox" bar with --theme-popup-color (the white card colour
+ * in light), so it sat as a white band over the grey list. Same surface as the list.
+ */
+#ui-root .inbox-header {
+  background-color: transparent;
+}

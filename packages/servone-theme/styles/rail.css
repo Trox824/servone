@@ -1,0 +1,43 @@
+/* Hide rail buttons TopRight.svelte replaces, so actions aren't offered twice. */
+
+/* Inbox has no data-id (rendered by Workbench directly); id is 'app-' + raw IntlString, one per isCommunicationEnabled branch. */
+#ui-root.mobile-theme [id='app-inbox:string:Inbox'],
+#ui-root.mobile-theme [id='app-notification:string:Inbox'] {
+  display: none !important;
+}
+
+/* Customize/AppSwitcher stays: only place to show/hide rail apps. */
+
+/* Support: the only .info-box child wrapped in <a target=_blank>. */
+#ui-root .info-box > a[target='_blank'] {
+  display: none !important;
+}
+
+/* NavLink wraps AppItems in <a href>; hide it too or an empty focusable anchor remains (axe link-name). */
+#ui-root.mobile-theme a:has(> [id='app-inbox:string:Inbox']),
+#ui-root.mobile-theme a:has(> [id='app-notification:string:Inbox']) {
+  display: none !important;
+}
+
+#ui-root:not(.mobile-theme) .antiPanel-application.vertical .hamburger-container {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+#ui-root:not(.mobile-theme) .antiPanel-application.vertical .apps-vertical {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+#ui-root:not(.mobile-theme) .antiPanel-application.vertical .hamburger-container > a:has(> [id='app-inbox:string:Inbox']),
+#ui-root:not(.mobile-theme) .antiPanel-application.vertical .hamburger-container > a:has(> [id='app-notification:string:Inbox']) {
+  order: 2;
+  margin-bottom: 0.5rem;
+}
+
+#ui-root:has(#sidebar.mini) .workbench-container.inner {
+  margin-right: 0;
+}
+
+/* Navigator is always open; toggle also lives in every page header (allowFullsize). */
+#ui-root:not(.mobile-theme) .topmenu-container {
+  display: none !important;
+}

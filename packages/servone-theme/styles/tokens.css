@@ -1,0 +1,133 @@
+/* Linear palette; slot names match shadcn "new-york" so bridge.css and tailwind.css need no changes. */
+
+:root,
+.theme-light {
+  /* Ink is charcoal, not #000 (too harsh). Page is off-white so it doesn't read as a sheet on the shell;
+     cards stay #fff to lift. */
+  --background: #fafafa;
+  --foreground: #0f1011;
+  --card: #ffffff;
+  --card-foreground: #0f1011;
+  --popover: #ffffff;
+  --popover-foreground: #0f1011;
+  --primary: #5e6ad2;
+  --primary-foreground: #ffffff;
+  /* Accent as text: 4.5:1 on --background. */
+  --link: #5e6ad2;
+  --secondary: #f5f6f6;
+  --secondary-foreground: #0f1011;
+  --muted: #f5f6f6;
+  /* 5.6:1 on white, AA on shell/sidebar/muted; ink-subtle #8a8f98 (3.2:1) fails. */
+  --muted-foreground: #62666d;
+  /* One step below surface-1 so hovers show on white and on --muted. */
+  --accent: #ebecee;
+  --accent-foreground: #0f1011;
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: #ffffff;
+  --border: #e6e7ea;
+  --input: #e6e7ea;
+  --ring: #5e6ad2;
+  --radius: 0.5rem;
+
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+
+  /* --sidebar must differ from --shell or the card edge vanishes in light mode. */
+  --shell: #f0f1f2;
+  --sidebar: #f6f7f7;
+  --sidebar-foreground: #0f1011;
+  --sidebar-primary: #5e6ad2;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgb(15 16 17 / 7%);
+  --sidebar-accent-foreground: #0f1011;
+  --sidebar-border: #e6e7ea;
+  --sidebar-ring: #5e6ad2;
+}
+
+/* `.white` = login/onboarding's hard-coded dark island in light app theme; skip it so it follows :root. */
+.theme-dark:not(.white) {
+  --background: #0f1011;
+  --foreground: #f7f8f8;
+  --card: #141516;
+  --card-foreground: #f7f8f8;
+  --popover: #18191a;
+  --popover-foreground: #f7f8f8;
+  --primary: #5e6ad2;
+  --primary-foreground: #ffffff;
+  /* #5e6ad2 is 4.0:1 on #0f1011, below AA for text; Linear hover tint is 6.6:1. */
+  --link: #828fff;
+  --secondary: #18191a;
+  --secondary-foreground: #f7f8f8;
+  --muted: #18191a;
+  --muted-foreground: #8a8f98;
+  /* Hover = hairline tone; surface-4 is too close to surface-3 and vanishes on cards. */
+  --accent: #23252a;
+  --accent-foreground: #f7f8f8;
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: #f7f8f8;
+  --border: #23252a;
+  --input: #34343a;
+  --ring: #5e6ad2;
+  --radius: 0.5rem;
+
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+
+  --shell: #010102;
+  --sidebar: #141516;
+  --sidebar-foreground: #f7f8f8;
+  --sidebar-primary: #5e6ad2;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgb(247 248 248 / 7%);
+  --sidebar-accent-foreground: #f7f8f8;
+  --sidebar-border: #23252a;
+  --sidebar-ring: #5e6ad2;
+}
+
+/* Fallback only: Theme.svelte resolves theme-system before paint. */
+@media (prefers-color-scheme: dark) {
+  .theme-system {
+    --background: #0f1011;
+    --foreground: #f7f8f8;
+    --card: #141516;
+    --card-foreground: #f7f8f8;
+    --popover: #18191a;
+    --popover-foreground: #f7f8f8;
+    --primary: #5e6ad2;
+    --primary-foreground: #ffffff;
+    --link: #828fff;
+    --secondary: #18191a;
+    --secondary-foreground: #f7f8f8;
+    --muted: #18191a;
+    --muted-foreground: #8a8f98;
+    --accent: #23252a;
+    --accent-foreground: #f7f8f8;
+    --destructive: oklch(0.704 0.191 22.216);
+    --destructive-foreground: #f7f8f8;
+    --border: #23252a;
+    --input: #34343a;
+    --ring: #5e6ad2;
+
+    --chart-1: oklch(0.488 0.243 264.376);
+    --chart-2: oklch(0.696 0.17 162.48);
+    --chart-3: oklch(0.769 0.188 70.08);
+    --chart-4: oklch(0.627 0.265 303.9);
+    --chart-5: oklch(0.645 0.246 16.439);
+
+    --shell: #010102;
+    --sidebar: #141516;
+    --sidebar-foreground: #f7f8f8;
+    --sidebar-primary: #5e6ad2;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: rgb(247 248 248 / 7%);
+    --sidebar-accent-foreground: #f7f8f8;
+    --sidebar-border: #23252a;
+    --sidebar-ring: #5e6ad2;
+  }
+}

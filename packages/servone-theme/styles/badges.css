@@ -1,0 +1,48 @@
+/* Chips get bg/border/colour inline from a hashed per-doc colour (getMixinStyle, getTagStyle), so !important is required.
+   ::before paints --background at 88% over the inline fill = ~12% tint of any chip hue, keeping text AA (audit H-3). */
+
+#ui-root .mixin-selector,
+#ui-root .tag-item {
+  position: relative;
+  border-radius: var(--radius-md) !important;
+  padding-inline: 0.375rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  color: var(--foreground) !important;
+}
+
+#ui-root .mixin-selector::before,
+#ui-root .tag-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: var(--background);
+  opacity: 0.88;
+  pointer-events: none;
+}
+
+#ui-root .mixin-selector > *,
+#ui-root .tag-item > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Role chips (Employee, Worker) name a class, not a state; the hashed hue made "Worker" read as an error. */
+#ui-root .mixin-selector {
+  min-width: 0 !important;
+  height: 1.375rem !important;
+  margin-left: 0.25rem !important;
+  color: var(--muted-foreground) !important;
+  background: var(--muted) !important;
+  border: 1px solid var(--border) !important;
+  cursor: default !important;
+}
+#ui-root .mixin-selector::before {
+  content: none;
+}
+#ui-root .mixin-selector:first-child {
+  margin-left: 0 !important;
+}

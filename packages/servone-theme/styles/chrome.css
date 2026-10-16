@@ -1,0 +1,443 @@
+/* Safe to hide: Settings stay reachable from the profile menu. */
+#ui-root > .antiStatusBar {
+  display: none !important;
+}
+
+/* Zero the var, not just hide the bar: .app height and popup offsets derive from it (global.scss, incl. mobile query). */
+:root,
+:root:has(.workbench-container),
+#ui-root {
+  --status-bar-height: 0px;
+}
+
+/* Huly .gap-N uses child margins, Tailwind uses `gap`; both applied doubled spacing.
+   Keep `gap`, zero Huly margins (same specificity, loaded later). */
+.gap-1 { gap: 0.25rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+
+.gap-1 > *:not(:last-child) { margin-right: 0; }
+.gap-1.reverse > :last-child { margin-right: 0; }
+.gap-2:not(.reverse) > *:not(:first-child),
+.gap-3:not(.reverse) > *:not(:first-child),
+.gap-4:not(.reverse) > *:not(:first-child) { margin-left: 0; }
+.gap-2.reverse > *:not(:last-child),
+.gap-3.reverse > *:not(:last-child),
+.gap-4.reverse > *:not(:last-child) { margin-right: 0; }
+
+/* Huly .hidden is visibility:hidden and lingers after a variant restores display (`hidden md:flex`). */
+.hidden {
+  visibility: inherit;
+}
+
+/* Tailwind .border sets all 4 sides; Huly uses it here as a top/bottom divider flag (components.scss). */
+.hulyAccordionItem-container.border {
+  border-left-width: 0;
+  border-right-width: 0;
+}
+
+/* Huly global `button { display: flex; justify-content: center }` pushes the Switch thumb past the track.
+   Not under #ui-root: dialogs portal to body. */
+[data-slot='switch'] {
+  display: inline-flex;
+  justify-content: flex-start;
+}
+
+/* Huly sheets style bare descendant spans (.hulyTableAttr-header, .antiCard-menu, .antiPopup-submenu); button owns spacing.
+   Only the wrapper's own spans: a caller's classed slot span keeps its spacing. */
+#ui-root [data-slot='button'] > span:is(.pointer-events-none, :not([class])) {
+  flex-grow: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* #ui-root needed: Workbench's scoped `.workbench-container.svelte-*` (height: 100%) has equal specificity and loads later. */
+#ui-root .workbench-container.inner {
+  margin: 0.5rem 0.5rem 0.5rem 0;
+  height: calc(100% - 1rem);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background-color: var(--background);
+  overflow: hidden;
+}
+.workbench-container.inner > .antiPanel-navigator,
+.workbench-container.inner > .antiPanel-navigator .antiPanel-wrap__content {
+  background-color: var(--sidebar);
+}
+.workbench-container.inner > .antiPanel-navigator.border-left {
+  border-left: none;
+}
+/* App-rendered navigators inside the page pane sat flush against the card border (2px edge). */
+#ui-root .workbench-container.inner > [data-id='contentPanel'] > .antiPanel-navigator.border-left,
+#ui-root .workbench-container.inner > [data-id='contentPanel'] > .hulyPanels-container > .antiPanel-navigator.border-left {
+  border-left: none;
+}
+/* Kit Separator is invisible, so the navigator draws the divider, on its side so a collapsed navigator leaves no extra line. */
+.workbench-container.inner > .antiPanel-navigator {
+  border-right: 1px solid var(--border);
+}
+/* border: none too: components.scss frames .hulyComponent on all 4 sides, doubling the card edge. */
+.workbench-container.inner > [data-id='contentPanel'].hulyComponent,
+.workbench-container.inner > [data-id='contentPanel'].hulyPanels-container,
+.workbench-container.inner > [data-id='contentPanel'].hulyPanels-container > .antiPanel-component > .hulyComponent,
+.workbench-container.inner > [data-id='contentPanel'].hulyPanels-container > .hulyComponent {
+  margin: 0;
+  height: 100%;
+  border: none;
+  border-radius: 0;
+  background-color: var(--background);
+}
+/* Team.svelte nests its own .hulyPanels-container, which the direct-child rules above miss. */
+#ui-root [data-id='contentPanel'].hulyPanels-container > .hulyPanels-container > .hulyComponent {
+  margin: 0;
+  height: 100%;
+  border: none;
+  border-radius: 0;
+}
+/* Workbench wraps the selected app component in an additional antiPanel-component layer. */
+#ui-root .workbench-container.inner > [data-id='contentPanel'].hulyPanels-container > .hulyPanels-container > .antiPanel-component > .hulyComponent {
+  margin: 0;
+  height: 100%;
+  border: none;
+  border-radius: 0;
+}
+/* Page side owns the divider here, same as chat.css, so a hidden navigator leaves no line.
+   Radius 0: panel.scss rounds Settings' page panel, which curled the divider's ends. */
+#ui-root [data-id='contentPanel'].hulyPanels-container > .hulyPanels-container > .antiPanel-navigator ~ .hulyComponent,
+#ui-root [data-id='contentPanel'].hulyPanels-container > .antiPanel-navigator ~ .antiPanel-component {
+  border-left: 1px solid var(--border);
+  border-radius: 0;
+}
+/* --theme-panel-color maps to --card (for floating dialogs), which made page bodies lighter than their header in dark. */
+#ui-root [data-id='contentPanel'] .hulyComponent,
+#ui-root [data-id='contentPanel'] .popupPanel-body {
+  background-color: var(--background);
+}
+.workbench-container.inner > .antiSeparator {
+  margin: 0;
+  height: 100%;
+}
+/* Content-height Scroller puts footer hairline 2px under last row; 8px mirrors the top. Chat has its own copy (chat.css). */
+#ui-root .antiPanel-navigator .hulyNavPanel-container > .scroller-container > .horizontalBox > .scroll > .box {
+  padding-bottom: 0.5rem;
+}
+/* Callers like Drive pass a slot that renders nothing ($$slots.default true, footer empty). `:has()` can't nest, hence :not(:has()). */
+#ui-root .antiNav-footer-line:not(:has(+ .antiNav-footer-grower + .antiNav-footer > *)),
+#ui-root .antiNav-footer:not(:has(*)) {
+  display: none;
+}
+/* 48px to align with page header's h-12 title row; subheader +4px lands on the page's h-10 toolbar. */
+#ui-root .hulyNavPanel-header,
+#ui-root .hulyNavPanel-header.withButton,
+#ui-root .hulyNavPanel-header.small {
+  min-height: 3rem;
+  padding: 0 0.75rem 0 1.25rem;
+}
+#ui-root .antiNav-subheader {
+  margin-top: 0.25rem;
+}
+/* Content-bound panels cover the page pane exactly, so drop panel.scss's floating frame.
+   `.bg` is only set in _open() (Drive never calls it); `.modal-overlay` sibling exists only for floating panels.
+   Right corners: the popup layer escapes the card's overflow clip, and the panel's right edge sits on its inner corners. */
+#ui-root .panel-instance.bg > .popupPanel,
+#ui-root .panel-instance:not(:has(+ .modal-overlay)) > .popupPanel {
+  border: none;
+  border-radius: 0 calc(0.75rem - 1px) calc(0.75rem - 1px) 0;
+}
+/* Widget panel becomes a second card matching .workbench-container.inner; `.float` overlay keeps its own frame. */
+#ui-root #sidebar.sidebar-container {
+  border-radius: 0;
+}
+#ui-root #sidebar .sidebar-wrap__content:not(.float) {
+  width: calc(100% - 3.5rem - 0.5rem);
+  height: calc(100% - 1rem);
+  margin: 0.5rem 0.5rem 0.5rem 0;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+/* 2rem column left 2px around 28px tabs and hit the card's rounded corner. */
+#ui-root #sidebar .sidebar-wrap__content .tabs {
+  width: 2.5rem;
+  min-width: 2.5rem;
+  max-width: 2.5rem;
+  padding: 0.5rem 0;
+  gap: 0.375rem;
+  border-left-color: var(--border);
+}
+/* Widget tabs reuse AppItem's small variant (28px, 16px glyph); match the rail's 36px button and 20px glyph. */
+#ui-root #sidebar .app.small,
+#ui-root #sidebar .app.small .icon-container {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+}
+#ui-root #sidebar .app.small .svg-small {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.workbench-container > .antiPanel-application:not(.horizontal) {
+  border-radius: 0;
+}
+/* Workbench's :not(.inner)::after ring reads as a stray divider on --shell. */
+#ui-root .workbench-container:not(.inner)::after {
+  display: none;
+}
+
+/* Huly's default box is 33px tall and overlaps the navigator's first row beside the rail. */
+#ui-root .tooltip {
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius);
+  background-color: var(--popover);
+  color: var(--popover-foreground);
+  border-color: var(--border);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+#ui-root .hulyAvatar-container.roundedRect,
+#ui-root .hulyAvatar-container.roundedRect img.ava-image,
+#ui-root .avatar.roundedRect,
+#ui-root .avatar.roundedRect img {
+  border-radius: 50%;
+}
+
+/* Page header already carries the primary action, so the navigator copy goes outline. */
+/* Covers single Button and ButtonWithDropdown's `div > button + button`. */
+#ui-root .antiNav-subheader > button,
+#ui-root .antiNav-subheader > div > button,
+#ui-root .antiNav-subheader button[type='submit'] {
+  background-color: var(--background);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+#ui-root .antiNav-subheader > button:hover,
+#ui-root .antiNav-subheader > div > button:hover,
+#ui-root .antiNav-subheader button[type='submit']:hover {
+  background-color: var(--accent);
+}
+#ui-root .antiNav-subheader > div > button:first-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right-width: 0;
+}
+#ui-root .antiNav-subheader > div > button:last-child:not(:first-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+#ui-root .antiNav-subheader .draft-circle {
+  background-color: var(--primary);
+}
+
+/* Size containment: a slot with no definite height collapses instead of growing to fit the spinner.
+   5rem: below that the slot is a chip or button, where a 24px spinner reads as a glitch. */
+#ui-root [data-slot='pending-component'] {
+  container-type: size;
+}
+@container (max-height: 5rem) or (max-width: 5rem) {
+  #ui-root [data-slot='pending-component'] > [role='status'] {
+    display: none;
+  }
+}
+/* Skeletons wait like Loading.svelte does: a warm query answers before they would paint, and a
+   one-frame skeleton reads as flicker. Unlayered, so it beats Skeleton's animate-pulse utility. */
+[data-slot='skeleton'] {
+  animation:
+    reveal 150ms ease-out 300ms both,
+    pulse 2s cubic-bezier(0.4, 0, 0.6, 1) 450ms infinite;
+}
+/* Shared with Loading, AppLoading and Lich's progress bar. */
+@keyframes reveal {
+  from {
+    opacity: 0;
+  }
+}
+/* Pulses are decoration and stop; the spinner is the only progress signal left, so it slows instead. */
+@media (prefers-reduced-motion: reduce) {
+  [data-slot='skeleton'] {
+    animation: reveal 1ms 300ms both;
+  }
+  .animate-pulse {
+    animation: none;
+  }
+  .animate-spin {
+    animation-duration: 3s;
+  }
+}
+/* Reserve the single size-7 "+" button; flex: none + margin-left: auto stops it truncating the title. */
+#ui-root .hulyNavPanel-header > [data-slot='pending-component'] {
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-left: auto;
+}
+/* `shrink` form under the header is HeaderButton's slot; reserve its box so the tree below does not jump. */
+#ui-root .hulyNavPanel-container > .hulyNavPanel-header + [data-slot='pending-component'] {
+  display: block;
+  height: 2rem;
+  margin: 0 0.75rem 0.75rem;
+}
+
+/* Servone FilterBar already renders the chips; IssuesView's second row would duplicate them. */
+#ui-root .below-header-filters {
+  display: none;
+}
+/* Gantt: chips live inline in the toolbar (`constrained`), keep only the save buttons. */
+#ui-root .hulyComponent:has(.inline-filter-chips-wrap.constrained) .filterbar-inline-container > .filterbar-chips {
+  display: none;
+}
+/* IssuesView counts on container-type making the panel the overlay's containing block; Chrome dropped that, so it centred on the workbench. */
+#ui-root .hulyComponent:has(> .search-empty-state-overlay) {
+  position: relative;
+}
+
+/* Bridge maps --theme-button-default to transparent, so chip segments floated apart. */
+#ui-root .filter-section {
+  background-color: transparent;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+#ui-root .filter-section .filter-button {
+  height: 1.625rem;
+  border: 0;
+  border-radius: 0;
+  font-size: 0.8125rem;
+}
+#ui-root .filter-section .filter-button:not(:first-child) {
+  border-left: 1px solid var(--border);
+}
+#ui-root .filter-section .filter-button.lower {
+  color: var(--muted-foreground);
+}
+#ui-root .filter-section .divider {
+  display: none;
+}
+
+/* Office room chip in the top bar: upstream fills it with --theme-button-pressed (a grey slab) at 4px, next to 8px ghost buttons. */
+#ui-root .hulyStatusBarButton {
+  gap: 0.375rem;
+  padding: 0 0.1875rem 0 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--foreground);
+  background-color: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+#ui-root .hulyStatusBarButton:hover {
+  background-color: var(--muted);
+  border-color: var(--border);
+}
+#ui-root .hulyStatusBarButton .hulyAvatarSize-card .ava-text {
+  font-size: 0.5625rem;
+}
+#ui-root .hulyStatusBarButton.active {
+  background-color: var(--highlight-select);
+  border-color: var(--highlight-select-border);
+}
+
+/* Upstream initials run at 0.6x the avatar width, so two letters ("NM") touch the rim; 0.4x keeps them inside.
+   Sizes below x-small keep their per-surface tuning (board.css, .hulyStatusBarButton). */
+#ui-root .hulyAvatarSize-x-small .ava-text { font-size: 0.625rem; letter-spacing: 0; }
+#ui-root .hulyAvatarSize-smaller .ava-text { font-size: 0.6875rem; letter-spacing: 0; }
+#ui-root .hulyAvatarSize-small .ava-text { font-size: 0.8125rem; letter-spacing: 0; }
+#ui-root .hulyAvatarSize-medium .ava-text { font-size: 1rem; }
+#ui-root .hulyAvatarSize-large .ava-text { font-size: 1.75rem; }
+#ui-root .hulyAvatarSize-large.modern .ava-text { font-size: 1.5rem; }
+#ui-root .hulyAvatarSize-x-large .ava-text { font-size: 2.75rem; }
+#ui-root .hulyAvatarSize-2x-large .ava-text { font-size: 3.75rem; }
+
+/* Upstream CombineAvatars notches overlapped avatars with a rounded-square SVG mask; on round avatars
+   the cut reads as a square rim. A background-coloured ring separates the circles instead. */
+#ui-root .hulyCombineAvatars-container .hulyCombineAvatar {
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--background);
+}
+#ui-root .hulyCombineAvatars-container .hulyCombineAvatar:not(:last-child) {
+  mask: none;
+}
+
+/* SocialIdentityPresenter sizes its provider icon 1.75rem for the two-line profile row; inline in
+   activity ("New social ids: ...") that is twice the text height. */
+#ui-root .content.overflow-label .values .flex-row-center > .icon {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.25rem;
+}
+
+/* Space-key preview (ActionHandler) is pinned top-right upstream; center it like a dialog.
+   Margins, not transform, so the Svelte fly transition does not fight the centering. */
+#ui-root .antiPanel.float {
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  max-width: calc(100vw - 2rem);
+}
+
+#ui-root .expandcollapse-container {
+  interpolate-size: allow-keywords;
+  overflow: clip;
+  height: auto;
+  transition: height 150ms ease-out, opacity 150ms ease-out, visibility 150ms allow-discrete;
+}
+#ui-root .expandcollapse-container[hidden] {
+  display: block;
+  height: 0;
+  opacity: 0;
+  visibility: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  #ui-root .expandcollapse-container {
+    transition: none;
+  }
+}
+
+.servone-float-panel[data-state='open'] {
+  transform-origin: var(--bits-floating-transform-origin);
+  animation: servone-float-in 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.servone-float-panel[data-state='closed'] {
+  animation: servone-float-out 100ms ease-in forwards;
+}
+.servone-float-panel[data-side='right'] {
+  --servone-float-x: -4px;
+}
+.servone-float-panel[data-side='left'] {
+  --servone-float-x: 4px;
+}
+.servone-float-panel[data-side='top'] {
+  --servone-float-y: 4px;
+}
+.servone-float-panel[data-side='bottom'] {
+  --servone-float-y: -4px;
+}
+@keyframes servone-float-in {
+  from {
+    opacity: 0;
+    transform: translate(var(--servone-float-x, 0), var(--servone-float-y, 0)) scale(0.97);
+  }
+}
+@keyframes servone-float-out {
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .servone-float-panel[data-state='open'] {
+    animation-name: reveal;
+  }
+}
+.servone-coach-target.servone-coach-target {
+  box-shadow: 0 0 0 2px var(--primary), 0 0 0 6px color-mix(in oklch, var(--primary) 18%, transparent);
+  animation: servone-coach-pulse 1.8s cubic-bezier(0.16, 1, 0.3, 1) 3;
+}
+@keyframes servone-coach-pulse {
+  50% { box-shadow: 0 0 0 2px var(--primary), 0 0 0 10px color-mix(in oklch, var(--primary) 0%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .servone-coach-target.servone-coach-target { animation: none; }
+}

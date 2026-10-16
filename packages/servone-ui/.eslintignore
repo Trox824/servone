@@ -1,0 +1,2 @@
+# shadcn-svelte CLI output — keep byte-identical so `add --overwrite` re-runs stay diff-clean
+src/lib/components/ui/

@@ -1,0 +1,252 @@
+#ui-root.mobile-theme > .antiStatusBar > .flex-row-center:first-child {
+  display: none;
+}
+#ui-root.mobile-theme > .antiStatusBar > .second-row {
+  display: flex !important;
+  position: relative;
+  align-items: center;
+  height: 100%;
+  padding: 0 5.5rem;
+}
+#ui-root.mobile-theme > .antiStatusBar > .second-row > :last-child {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  transform: translateY(-50%);
+}
+#ui-root.mobile-theme > .antiStatusBar #servone-master-search {
+  position: static;
+  transform: none;
+}
+#ui-root.mobile-theme > .antiStatusBar #servone-master-search button {
+  width: 100%;
+  max-width: none;
+}
+#ui-root.mobile-theme > .antiStatusBar .second-row > :first-child {
+  flex: 1 1 0;
+  min-width: 0;
+}
+#ui-root.mobile-theme > .antiStatusBar .second-row #servone-master-search kbd {
+  display: none;
+}
+#ui-root.mobile-theme .hamburger-container {
+  z-index: 20;
+}
+/* Apps with their own drawer toggle (calendar) have no workbench navigator, so the shell menu would do nothing. */
+#ui-root.mobile-theme:has([data-app-menu]) .hamburger-container .topmenu-container,
+.servone-no-app-menu #ui-root.mobile-theme .hamburger-container .topmenu-container {
+  display: none;
+}
+/* Upstream marks the menu button selected while the menu is closed. */
+#ui-root.mobile-theme .hamburger-container .topmenu-container .app.selected {
+  background-color: transparent;
+}
+#ui-root.mobile-theme .hamburger-container .logo-container.mini {
+  top: 0.375rem;
+}
+#ui-root.mobile-theme .hamburger-container .topmenu-container.mini {
+  top: 0.125rem;
+}
+#ui-root.mobile-theme .hamburger-container .logo-container.mini {
+  left: 0.5rem;
+}
+#ui-root.mobile-theme .hamburger-container .topmenu-container.mini {
+  left: 2.625rem;
+}
+
+#ui-root.mobile-theme .workbench-container.inner {
+  margin: 0;
+  height: 100%;
+  border: none;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+}
+#ui-root.mobile-theme #sidebar {
+  display: none !important;
+}
+
+#ui-root.mobile-theme .antiPanel-navigator.fly {
+  top: var(--status-bar-height) !important;
+  left: 0 !important;
+  width: calc(100% * 2 / 3) !important;
+  max-width: none;
+  height: calc(100% - var(--status-bar-height) - var(--app-panel-width)) !important;
+  border: none;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  filter: none;
+  box-shadow: 4px 0 16px rgb(0 0 0 / 0.12);
+  animation: servone-drawer-in 200ms ease-out;
+}
+#ui-root.mobile-theme .workbench-container .cover.shown {
+  top: var(--status-bar-height);
+  height: calc(100% - var(--status-bar-height) - var(--app-panel-width));
+  background-color: rgb(0 0 0 / 0.3);
+}
+.servone-list-page #ui-root.mobile-theme .workbench-container .cover.shown {
+  display: none;
+}
+.servone-list-page #ui-root.mobile-theme .antiPanel-navigator {
+  width: 100% !important;
+  max-width: none !important;
+  border-right: none;
+  box-shadow: none;
+  animation: none;
+}
+@keyframes servone-drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #ui-root.mobile-theme .antiPanel-navigator.fly {
+    animation: none;
+  }
+}
+
+#ui-root.mobile-theme .servone-header:not(.flex-col),
+#ui-root.mobile-theme .servone-header-row,
+#ui-root.mobile-theme .servone-header.flex-col > :last-child {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+#ui-root.mobile-theme .servone-header > *,
+#ui-root.mobile-theme .servone-header-row > * {
+  flex-shrink: 0;
+}
+#ui-root.mobile-theme .servone-header .servone-header-title {
+  flex: 1 0 auto;
+  min-width: 8rem;
+  max-width: 70%;
+}
+
+#ui-root.mobile-theme .panel-instance {
+  left: 0 !important;
+  right: 0 !important;
+  width: auto !important;
+  max-width: none !important;
+}
+
+#ui-root.mobile-theme .antiPanel-application.horizontal .hamburger-container.portrait {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+}
+#ui-root.mobile-theme .antiPanel-application.horizontal .info-box {
+  padding-left: 0.5rem;
+}
+#ui-root.mobile-theme .antiPanel-application.horizontal .apps-horizontal {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+#ui-root.mobile-theme .antiPanel-application.horizontal .scroller-container {
+  margin-right: 0;
+}
+#ui-root.mobile-theme .antiPanel-application.horizontal .updown-container {
+  display: none;
+}
+#ui-root.mobile-theme .antiPanel-application.horizontal .scroll {
+  scrollbar-width: none;
+}
+
+#ui-root.mobile-theme .servone-header .overflow-hidden {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+#ui-root.mobile-theme .servone-header [data-slot='button'] {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+#ui-root.mobile-theme .antiPanel-application.horizontal .info-box a,
+#ui-root.mobile-theme .antiPanel-application.horizontal .info-box [data-id='workbench-app-customize'] {
+  display: none;
+}
+#ui-root.mobile-theme .antiPanel-application.horizontal .apps-horizontal .app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  width: auto;
+  min-width: 3.5rem;
+  height: 3rem;
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+}
+#ui-root.mobile-theme .antiPanel-application.horizontal .apps-horizontal .app .caption {
+  color: var(--muted-foreground);
+}
+#ui-root.mobile-theme .antiPanel-application.horizontal .apps-horizontal .app .caption {
+  display: block;
+  max-width: 4.5rem;
+  overflow: hidden;
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#ui-root.mobile-theme .antiPanel-application.horizontal .apps-horizontal .app .unread-pill {
+  top: 0.25rem;
+  bottom: auto;
+  right: 0.5rem;
+}
+/* Accent text on the tinted pill is 3.4:1 at 11px; tint the icon, keep the caption dark. */
+#ui-root.mobile-theme .antiPanel-application.horizontal .apps-horizontal .app.selected .caption {
+  color: var(--foreground);
+  font-weight: 600;
+}
+#ui-root.mobile-theme .antiPanel-application.horizontal .apps-horizontal .app.selected .icon-container {
+  color: var(--primary);
+}
+
+#ui-root.mobile-theme .servone-header :is(button, [role='button']) {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+/* The 2.5rem status bar caps its controls below 2.75rem. */
+#ui-root.mobile-theme .antiStatusBar :is(button, [role='button']),
+#ui-root.mobile-theme .topmenu-container button {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+}
+/* A tap fires mouseenter, so tooltips open on touch and stay until the next tap. */
+@media (hover: none) {
+  .tooltip.fixed {
+    display: none;
+  }
+}
+
+#ui-root.mobile-theme > .antiStatusBar #servone-master-search {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+#ui-root.mobile-theme .antiPanel-application.horizontal {
+  padding: 0 0.75rem env(safe-area-inset-bottom);
+}
+#ui-root.mobile-theme .antiPanel-application.horizontal .apps-horizontal,
+#ui-root.mobile-theme .antiPanel-application.horizontal .apps-horizontal :is(.scroller-container, .horizontalBox, .scroll, .box) {
+  width: 100%;
+}
+#ui-root.mobile-theme .antiPanel-application.horizontal .apps-horizontal .box {
+  gap: 0;
+  justify-content: space-around;
+}
+#ui-root.mobile-theme .antiPanel-application.horizontal .apps-horizontal .app-slot {
+  flex: 1 1 0;
+  min-width: 0;
+}
+#ui-root.mobile-theme .antiPanel-application.horizontal .apps-horizontal .app-slot :is(a, .app) {
+  width: 100%;
+}
+#ui-root.mobile-theme .antiPanel-application.horizontal .apps-horizontal .trailing-spacer {
+  display: none;
+}
+
+/* iOS zooms the page into any focused field under 16px; popups render outside #ui-root. */
+:root:has(#ui-root.mobile-theme) :is(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select) {
+  font-size: 16px;
+}
