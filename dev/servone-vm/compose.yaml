@@ -7,6 +7,16 @@ x-node: &node
   restart: unless-stopped
   mem_limit: 256m
   networks: [servone]
+  logging:
+    driver: json-file
+    options: { max-size: 10m, max-file: "3" }
+
+# Kafka consumers that start before redpanda is up never retry, so they wait for its healthcheck.
+x-consumer: &consumer
+  <<: *node
+  depends_on:
+    redpanda: { condition: service_healthy }
+    cockroach: { condition: service_started }
 
 x-urls:
   - &db_url postgresql://root@cockroach:26257/defaultdb?sslmode=disable
@@ -31,6 +41,11 @@ services:
       --kafka-addr internal://0.0.0.0:9092 --advertise-kafka-addr internal://redpanda:9092
       --rpc-addr redpanda:33145 --advertise-rpc-addr redpanda:33145 --default-log-level=warn
     volumes: [redpanda:/var/lib/redpanda/data]
+    healthcheck:
+      test: [CMD, rpk, cluster, health, --exit-when-healthy]
+      interval: 10s
+      timeout: 10s
+      retries: 30
     <<: *node
     mem_limit: 512m
 
@@ -78,7 +93,7 @@ services:
       LAST_NAME_FIRST: "true"
       CORS_ORIGINS: *front_url
       BRANDING_PATH: /usr/src/app/branding.json
-    <<: *node
+    <<: *consumer
     mem_limit: 384m
 
   transactor:
@@ -102,7 +117,7 @@ services:
       HULYLAKE_URL: http://hulylake:8096
       LAST_NAME_FIRST: "true"
       METRICS_CONSOLE: "false"
-    <<: *node
+    <<: *consumer
     mem_limit: 1g
 
   workspace:
@@ -119,7 +134,7 @@ services:
       MAIL_URL: http://mail:8097
       # Nonexistent on purpose: the stock image ships Huly's demo projects in ./init-scripts.
       INIT_REPO_DIR: /servone-no-init
-    <<: *node
+    <<: *consumer
     mem_limit: 768m
 
   collaborator:
@@ -142,7 +157,7 @@ services:
       BUCKETS: blobs,eu|http://minio:9000?accessKey=${MINIO_USER}&secretKey=${MINIO_PASSWORD}
       QUEUE_CONFIG: *queue
       REGION: cockroach
-    <<: *node
+    <<: *consumer
     mem_limit: 384m
 
   hulylake:
@@ -191,7 +206,7 @@ services:
       ELASTIC_INDEX_NAME: servone_index
       # Must be defined; blank skips attachment text extraction (no rekoni).
       REKONI_URL: ""
-    <<: *node
+    <<: *consumer
     mem_limit: 512m
 
   time-machine:
@@ -200,7 +215,7 @@ services:
       DB_URL: *db_url
       QUEUE_CONFIG: *queue
       QUEUE_REGION: cockroach
-    <<: *node
+    <<: *consumer
 
   events-processor:
     image: hardcoreeng/events-processor:s0.7.437
@@ -210,7 +225,7 @@ services:
       ACCOUNTS_URL: *accounts
       QUEUE_CONFIG: *queue
       QUEUE_REGION: cockroach
-    <<: *node
+    <<: *consumer
 
   process:
     image: hardcoreeng/process:s0.7.437
@@ -220,7 +235,7 @@ services:
       COLLABORATOR_URL: http://collaborator:3078
       QUEUE_CONFIG: *queue
       QUEUE_REGION: cockroach
-    <<: *node
+    <<: *consumer
 
   notification:
     image: hardcoreeng/notification:s0.7.437
@@ -268,7 +283,7 @@ services:
       STORAGE_CONFIG: *storage
       POSTHOG_KEY: ${POSTHOG_KEY}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-    <<: *node
+    <<: *consumer
     mem_limit: 384m
 
   front:
