@@ -1,0 +1,66 @@
+name: Servone images
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+concurrency:
+  group: servone-images
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: front
+            dockerfile: dev/railway/front-image/Dockerfile
+            args: |
+              SERVONE_MCP_URL=https://mcp.servone.app
+              SERVONE_WEBHOOKS_URL=https://mcp.servone.app
+          - name: account
+            dockerfile: dev/railway/service-image/Dockerfile
+            args: |
+              SERVONE_PACKAGE=@hcengineering/pod-account
+              SERVONE_FOLDER=pods/account
+          # VERSION must match the front and MODEL_VERSION the stored workspace version, or clients loop on "upgrading".
+          - name: transactor
+            dockerfile: dev/railway/service-image/Dockerfile
+            args: |
+              SERVONE_PACKAGE=@hcengineering/pod-server
+              SERVONE_FOLDER=pods/server
+              SERVONE_BASE=hardcoreeng/base:v20250916
+              VERSION=0.7.437
+              MODEL_VERSION=0.7.426
+          - name: services
+            dockerfile: dev/railway/service-image/Dockerfile
+            args: |
+              SERVONE_PACKAGE=@servone/services
+              SERVONE_FOLDER=services/servone
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64
+          push: true
+          build-args: |
+            ${{ matrix.args }}
+            RAILWAY_GIT_COMMIT_SHA=${{ github.sha }}
+          tags: |
+            ghcr.io/trox824/servone-${{ matrix.name }}:develop
+            ghcr.io/trox824/servone-${{ matrix.name }}:${{ github.sha }}
